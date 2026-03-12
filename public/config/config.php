@@ -3,11 +3,10 @@
 // config/config.php - Main configuration
 // ============================================================
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'bfpcdjmy_pottery');
-define('DB_USER', 'bfpcdjmy_pottery');
-define('DB_PASS', 'L]C(SE?a?oWf');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_HOST', $_ENV['DB_HOST']);
+define('DB_NAME', $_ENV['DB_NAME']);
+define('DB_USER', $_ENV['DB_USER']);
+define('DB_PASS', $_ENV['DB_PASS']);
 
 define('SITE_URL', 'https://programmingpotter.com'); // No trailing slash
 define('UPLOAD_PATH', __DIR__ . '/../public/uploads/');

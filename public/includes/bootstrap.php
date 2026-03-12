@@ -9,6 +9,13 @@ require_once ROOT_PATH . '/includes/Auth.php';
 require_once ROOT_PATH . '/includes/ImageUpload.php';
 require_once ROOT_PATH . '/includes/Stripe.php';
 require_once ROOT_PATH . '/includes/Mailer.php';
+require_once ROOT_PATH . '/vendor/autoload.php';
+
+// Load .env if you are using Dotenv
+if (file_exists(BASE_PATH . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
+    $dotenv->safeLoad();
+}
 
 Auth::start();
 

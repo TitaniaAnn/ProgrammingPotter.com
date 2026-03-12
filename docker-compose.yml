@@ -5,14 +5,11 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./public:/var/www/html
-      - ./config:/var/www/config
-      - ./includes:/var/www/includes
-      - ./templates:/var/www/templates
+      - .:/var/www/html
     environment:
       - DB_HOST=db
       - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASS}
+      - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
 
   # The MySQL Database
@@ -22,7 +19,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_PASS: ${DB_PASS}
     ports:
       - "3306:3306"
     volumes:

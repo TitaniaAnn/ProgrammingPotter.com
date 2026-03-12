@@ -3,10 +3,11 @@
 // config/config.php - Main configuration
 // ============================================================
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'bfpcdjmy_pottery');
-define('DB_USER', 'bfpcdjmy_pottery');
-define('DB_PASS', 'L]C(SE?a?oWf');
+define('DB_HOST', $_ENV['DB_HOST']);
+define('DB_NAME', $_ENV['DB_NAME']);
+define('DB_USER', $_ENV['DB_USER']);
+define('DB_PASS', $_ENV['DB_PASS']);
+
 define('DB_CHARSET', 'utf8mb4');
 
 define('SITE_URL', 'https://programmingpotter.com'); // No trailing slash
@@ -16,8 +17,8 @@ define('UPLOAD_URL', SITE_URL . '/uploads/');
 // GitHub OAuth — get from https://github.com/settings/developers
 // → OAuth Apps → New OAuth App
 // → Authorization callback URL: https://yourdomain.com/admin/auth/callback.php
-define('GITHUB_CLIENT_ID',     'Ov23lirCPHrpwWDyNrWe');
-define('GITHUB_CLIENT_SECRET', '4134b636437c668b8318c17e56d4a4987b623cd0');
+define('GITHUB_CLIENT_ID',     $_ENV['GITHUB_CLIENT_ID']);
+define('GITHUB_CLIENT_SECRET', $_ENV['GITHUB_CLIENT_SECRET']);
 define('GITHUB_REDIRECT_URI',  SITE_URL . '/admin/auth/callback.php');
 
 // Your GitHub username — only this account can log in as admin

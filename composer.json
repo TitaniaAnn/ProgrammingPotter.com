@@ -3,7 +3,8 @@
     "description": "Pottery portfolio website",
     "require": {
         "php": ">=8.0",
-        "stripe/stripe-php": "^13.0"
+        "stripe/stripe-php": "^13.0",
+        "vlucas/phpdotenv": "^5.6"
     },
     "autoload": {
         "psr-4": {}

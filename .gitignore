@@ -1,2 +1,5 @@
 .env
-l.env
+DockerFile
+README.md
+STRIPE_SETUP.md
+docker-compose.yml

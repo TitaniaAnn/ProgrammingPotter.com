@@ -1,0 +1,4 @@
+# MIME types — required for favicon.ico on some Bluehost configs
+AddType image/x-icon .ico
+AddType image/png .png
+AddType image/svg+xml .svg

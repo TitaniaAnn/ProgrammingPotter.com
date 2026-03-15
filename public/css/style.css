@@ -156,6 +156,14 @@ body { padding-top: 68px; }
 }
 .nav__link:hover { color: var(--warm-white); }
 .nav__link:hover::after { right: 0; }
+.nav__link--beta, .nav__mobile-link--beta {
+    background: var(--clay); color: #000 !important;
+    padding: .25rem .7rem; border-radius: 3px;
+    font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    line-height: 1;
+}
+.nav__link--beta::after { display: none; }
+.nav__link--beta:hover { background: var(--clay-lt); color: #000 !important; }
 .nav__burger {
     display: none; flex-direction: column; gap: 5px;
     background: none; border: none; cursor: pointer; padding: 4px;

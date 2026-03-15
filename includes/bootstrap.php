@@ -9,6 +9,7 @@ require_once ROOT_PATH . '/includes/Auth.php';
 require_once ROOT_PATH . '/includes/ImageUpload.php';
 require_once ROOT_PATH . '/includes/Stripe.php';
 require_once ROOT_PATH . '/includes/Mailer.php';
+require_once ROOT_PATH . '/includes/GitHubAPI.php';
 if (!file_exists(ROOT_PATH . '/vendor/autoload.php')) {
     die("Autoloader not found at: " . ROOT_PATH . '/vendor/autoload.php');
 }

@@ -3,6 +3,19 @@
 
 define('ROOT_PATH', dirname(__DIR__));
 
+// 1. Autoloader must come first (Dotenv lives in vendor/)
+if (!file_exists(ROOT_PATH . '/vendor/autoload.php')) {
+    die("Autoloader not found at: " . ROOT_PATH . '/vendor/autoload.php');
+}
+require_once ROOT_PATH . '/vendor/autoload.php';
+
+// 2. Load .env BEFORE config.php so $_ENV is populated when constants are defined
+if (file_exists(ROOT_PATH . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
+    $dotenv->safeLoad();
+}
+
+// 3. Now config.php can safely read $_ENV
 require_once ROOT_PATH . '/config/config.php';
 require_once ROOT_PATH . '/includes/Database.php';
 require_once ROOT_PATH . '/includes/Auth.php';
@@ -10,17 +23,6 @@ require_once ROOT_PATH . '/includes/ImageUpload.php';
 require_once ROOT_PATH . '/includes/Stripe.php';
 require_once ROOT_PATH . '/includes/Mailer.php';
 require_once ROOT_PATH . '/includes/GitHubAPI.php';
-if (!file_exists(ROOT_PATH . '/vendor/autoload.php')) {
-    die("Autoloader not found at: " . ROOT_PATH . '/vendor/autoload.php');
-}
-
-require_once ROOT_PATH . '/vendor/autoload.php';
-
-// Load .env if you are using Dotenv
-if (file_exists(ROOT_PATH . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
-    $dotenv->safeLoad();
-}
 
 Auth::start();
 

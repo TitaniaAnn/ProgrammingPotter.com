@@ -41,3 +41,14 @@ define('SESSION_LIFETIME', 86400 * 7); // 7 days
 define('MAX_IMAGE_SIZE', 10 * 1024 * 1024); // 10MB
 define('THUMB_WIDTH', 600);
 define('THUMB_HEIGHT', 600);
+
+// ── Beta Testing Portal ──────────────────────────────────────────────────────
+// GitHub repo for the beta app (e.g. 'TitaniaAnn/my-pottery-studio')
+define('BETA_GITHUB_REPO',  $_ENV['BETA_GITHUB_REPO']  ?? '');
+// Personal Access Token with repo scope — used to CREATE issues on behalf of testers
+define('BETA_GITHUB_TOKEN', $_ENV['BETA_GITHUB_TOKEN'] ?? '');
+// Download URLs — leave empty to hide that platform's button
+define('BETA_DOWNLOAD_IOS',     $_ENV['BETA_DOWNLOAD_IOS']     ?? '');
+define('BETA_DOWNLOAD_ANDROID', $_ENV['BETA_DOWNLOAD_ANDROID'] ?? '');
+define('BETA_DOWNLOAD_MAC',     $_ENV['BETA_DOWNLOAD_MAC']     ?? '');
+define('BETA_DOWNLOAD_WINDOWS', $_ENV['BETA_DOWNLOAD_WINDOWS'] ?? '');

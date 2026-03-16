@@ -179,22 +179,57 @@ For features: describe the problem it solves and how you'd like it to work."></t
         <section id="issues" class="beta-section">
             <div class="beta-section__header">
                 <h2>Issues &amp; Features</h2>
-                <p>All bugs and feature requests tracked in the GitHub repository.</p>
+                <p>Community submissions with voting, plus the full GitHub issue tracker.</p>
             </div>
 
-            <div class="beta-issues-toolbar">
-                <div class="beta-issues-filters">
-                    <button class="beta-filter-btn active" data-filter="all">All</button>
-                    <button class="beta-filter-btn" data-filter="open">Open</button>
-                    <button class="beta-filter-btn" data-filter="closed">Closed</button>
-                    <button class="beta-filter-btn" data-filter="bug">Bugs</button>
-                    <button class="beta-filter-btn" data-filter="enhancement">Features</button>
+            <!-- Sub-tabs -->
+            <div class="beta-subtabs">
+                <button class="beta-subtab beta-subtab--active" data-subtab="submissions">
+                    Community Submissions
+                </button>
+                <button class="beta-subtab" data-subtab="github">
+                    GitHub Issues
+                </button>
+            </div>
+
+            <!-- ── Submissions sub-tab ── -->
+            <div id="submissionsTab">
+                <div class="beta-issues-toolbar">
+                    <div class="beta-issues-filters">
+                        <button class="beta-sub-filter-btn beta-sub-filter-btn--active" data-type="all" data-status="all">All</button>
+                        <button class="beta-sub-filter-btn" data-type="bug"     data-status="all">Bugs</button>
+                        <button class="beta-sub-filter-btn" data-type="feature" data-status="all">Features</button>
+                        <button class="beta-sub-filter-btn" data-type="all"     data-status="open">Open</button>
+                        <button class="beta-sub-filter-btn" data-type="all"     data-status="closed">Closed</button>
+                    </div>
+                    <div style="display:flex;gap:.5rem;align-items:center">
+                        <label style="font-size:.78rem;color:var(--stone-lt)">Sort:</label>
+                        <select id="subSort" class="beta-select">
+                            <option value="votes">Most Voted</option>
+                            <option value="newest">Newest</option>
+                        </select>
+                    </div>
                 </div>
-                <button class="beta-btn beta-btn--sm" id="refreshIssues">Refresh</button>
+                <div id="submissionsList" class="beta-issues-list">
+                    <div class="beta-loading">Loading submissions…</div>
+                </div>
             </div>
 
-            <div id="issuesList" class="beta-issues-list">
-                <div class="beta-loading">Loading issues…</div>
+            <!-- ── GitHub sub-tab ── -->
+            <div id="githubTab" style="display:none">
+                <div class="beta-issues-toolbar">
+                    <div class="beta-issues-filters">
+                        <button class="beta-filter-btn beta-filter-btn--active" data-filter="all">All</button>
+                        <button class="beta-filter-btn" data-filter="open">Open</button>
+                        <button class="beta-filter-btn" data-filter="closed">Closed</button>
+                        <button class="beta-filter-btn" data-filter="bug">Bugs</button>
+                        <button class="beta-filter-btn" data-filter="enhancement">Features</button>
+                    </div>
+                    <button class="beta-btn beta-btn--sm" id="refreshIssues">Refresh</button>
+                </div>
+                <div id="issuesList" class="beta-issues-list">
+                    <div class="beta-loading">Loading…</div>
+                </div>
             </div>
         </section>
 

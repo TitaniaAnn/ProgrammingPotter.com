@@ -269,7 +269,91 @@ img { max-width: 100%; display: block; }
     font-family: var(--font-body); transition: all var(--transition);
 }
 .beta-filter-btn:hover { border-color: var(--stone); color: var(--text); }
-.beta-filter-btn.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+.beta-filter-btn.active,
+.beta-filter-btn--active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+
+/* ── Sub-filters (submissions tab) ──────────────────────────── */
+.beta-sub-filter-btn {
+    padding: .35rem .8rem; border-radius: 20px;
+    border: 1px solid var(--beta-border); background: transparent;
+    color: var(--stone-lt); font-size: .82rem; cursor: pointer;
+    font-family: var(--font-body); transition: all var(--transition);
+}
+.beta-sub-filter-btn:hover { border-color: var(--stone); color: var(--text); }
+.beta-sub-filter-btn--active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+
+/* ── Sort select ─────────────────────────────────────────────── */
+.beta-select {
+    background: rgba(255,255,255,.06); border: 1px solid var(--beta-border);
+    border-radius: var(--radius); color: var(--text);
+    padding: .3rem .6rem; font-family: var(--font-body); font-size: .82rem;
+    cursor: pointer;
+}
+.beta-select:focus { outline: none; border-color: var(--gold); }
+
+/* ── Sub-tabs ────────────────────────────────────────────────── */
+.beta-subtabs {
+    display: flex; gap: 0; margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--beta-border);
+}
+.beta-subtab {
+    padding: .6rem 1.25rem; background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    font-family: var(--font-body); font-size: .9rem; font-weight: 600;
+    color: var(--stone-lt); cursor: pointer; transition: all var(--transition);
+}
+.beta-subtab:hover { color: var(--text); }
+.beta-subtab--active { color: var(--gold-lt); border-bottom-color: var(--gold); }
+
+/* ── Submission cards (with voting) ─────────────────────────── */
+.beta-sub-card {
+    background: var(--beta-surface); border: 1px solid var(--beta-border);
+    border-radius: 8px; display: flex; gap: 0;
+    transition: border-color var(--transition);
+}
+.beta-sub-card:hover { border-color: rgba(212,168,32,.35); }
+
+.beta-vote-col {
+    display: flex; flex-direction: column; align-items: center;
+    gap: .2rem; padding: .9rem .75rem;
+    border-right: 1px solid var(--beta-border);
+    min-width: 52px;
+}
+.beta-vote-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: .95rem; line-height: 1; padding: .2rem .35rem;
+    border-radius: 3px; color: var(--stone);
+    transition: all var(--transition);
+}
+.beta-vote-btn:hover:not(:disabled) { color: var(--text); background: rgba(255,255,255,.08); }
+.beta-vote-btn:disabled { opacity: .5; cursor: default; }
+.beta-vote-btn--active-up   { color: var(--gold) !important; }
+.beta-vote-btn--active-down { color: #E57373 !important; }
+
+.beta-vote-score {
+    font-size: .88rem; font-weight: 700; color: var(--text);
+    min-width: 1.5rem; text-align: center; line-height: 1;
+}
+
+.beta-sub-card__body { flex: 1; padding: .9rem 1.1rem; min-width: 0; }
+.beta-sub-card__header {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    margin-bottom: .4rem;
+}
+.beta-sub-card__title { font-weight: 700; color: var(--parchment); font-size: .97rem; }
+.beta-sub-card__desc  { font-size: .85rem; color: var(--stone-lt); margin-bottom: .5rem; line-height: 1.5; }
+.beta-sub-card__meta  {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    font-size: .78rem; color: var(--stone);
+}
+.beta-vote-tally { color: var(--stone); font-size: .76rem; }
+.beta-gh-link    { color: var(--gold); font-size: .78rem; }
+.beta-gh-link:hover { color: var(--gold-lt); }
+
+/* Type/status label colours */
+.beta-type-bug      { background: rgba(229,115,115,.2); color: #FFAAAA; }
+.beta-type-feature  { background: rgba(100,181,246,.2); color: #90CAF9; }
+.beta-status-progress { background: rgba(255,167,38,.2); color: #FFCC80; }
 
 .beta-issues-list { display: flex; flex-direction: column; gap: .75rem; }
 

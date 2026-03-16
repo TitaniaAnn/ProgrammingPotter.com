@@ -16,9 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm  = $_POST['confirm'] ?? '';
     $platform = in_array($_POST['platform'] ?? '', ['android','ios','both','other']) ? $_POST['platform'] : 'other';
     $agreed   = !empty($_POST['agreement']);
+    $eulaAgreed = !empty($_POST['eula']);
 
-    if (!$agreed) {
-        $error = 'You must read and agree to the Beta Test Agreement to continue.';
+    if (!$agreed || !$eulaAgreed) {
+        $error = 'You must agree to both the Beta Test Agreement and the EULA to continue.';
     } elseif ($password !== $confirm) {
         $error = 'Passwords do not match.';
     } else {
@@ -137,6 +138,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </div>
 
+            <!-- EULA -->
+            <div class="beta-form__group">
+                <label>End User License Agreement (EULA)</label>
+                <div class="beta-agreement-box" id="eulaBox">
+                    <div class="beta-agreement-text">
+                        <?php
+                        // Inline summary — full text at /beta/eula.php
+                        $siteName = setting('site_name', 'My Pottery Studio');
+                        ?>
+                        <p><strong><?= e($siteName) ?> Beta EULA — Summary</strong></p>
+                        <p>This is a legal agreement between you and the Developer. By agreeing you confirm that you:</p>
+                        <ul style="padding-left:1.1rem;margin:.5rem 0">
+                            <li>Receive a limited, non-transferable license to use the App for testing only.</li>
+                            <li>Will not copy, reverse engineer, redistribute, or commercially use the App.</li>
+                            <li>Will keep all App details, features, and design strictly confidential.</li>
+                            <li>Grant the Developer a royalty-free license to use any Feedback you submit.</li>
+                            <li>Acknowledge the App is provided "as is" with no warranty.</li>
+                            <li>Accept that the Developer is not liable for data loss or damages.</li>
+                            <li>Must delete the App if your access is terminated or the beta ends.</li>
+                        </ul>
+                        <p><a href="/beta/eula.php" target="_blank">Read the full EULA ↗</a></p>
+                    </div>
+                    <div class="beta-agreement-fade" id="eulaFade"></div>
+                </div>
+                <button type="button" class="beta-agreement-expand" id="expandEula">
+                    Read full summary ↓
+                </button>
+            </div>
+
+            <div class="beta-form__group">
+                <label class="beta-checkbox-label">
+                    <input type="checkbox" name="eula" value="1" required
+                           <?= !empty($_POST['eula']) ? 'checked' : '' ?>>
+                    <span>I have read and agree to the <strong><a href="/beta/eula.php" target="_blank">End User License Agreement</a></strong></span>
+                </label>
+            </div>
+
             <div class="beta-form__group">
                 <label class="beta-checkbox-label">
                     <input type="checkbox" name="agreement" value="1" required
@@ -158,17 +196,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 (function () {
-    const box    = document.getElementById('agreementBox');
-    const fade   = document.getElementById('agreementFade');
-    const btn    = document.getElementById('expandAgreement');
-    let expanded = false;
+    function makeToggle(boxId, fadeId, btnId, collapseLabel, expandLabel) {
+        const box  = document.getElementById(boxId);
+        const fade = document.getElementById(fadeId);
+        const btn  = document.getElementById(btnId);
+        if (!box || !btn) return;
+        let expanded = false;
+        btn.addEventListener('click', function () {
+            expanded = !expanded;
+            box.classList.toggle('beta-agreement-box--expanded', expanded);
+            if (fade) fade.style.display = expanded ? 'none' : '';
+            btn.textContent = expanded ? collapseLabel : expandLabel;
+        });
+    }
 
-    btn && btn.addEventListener('click', function () {
-        expanded = !expanded;
-        box.classList.toggle('beta-agreement-box--expanded', expanded);
-        fade.style.display  = expanded ? 'none' : '';
-        btn.textContent     = expanded ? 'Collapse ↑' : 'Read full agreement ↓';
-    });
+    makeToggle('agreementBox', 'agreementFade', 'expandAgreement', 'Collapse ↑', 'Read full agreement ↓');
+    makeToggle('eulaBox',      'eulaFade',      'expandEula',      'Collapse ↑', 'Read full summary ↓');
 })();
 </script>
 </body>

@@ -28,7 +28,7 @@ class BetaAuth {
     /**
      * Register a new beta tester. Returns user id or throws on failure.
      */
-    public static function register(string $email, string $password, string $name): int {
+    public static function register(string $email, string $password, string $name, string $platform = 'other'): int {
         $email = strtolower(trim($email));
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -46,11 +46,15 @@ class BetaAuth {
             throw new RuntimeException('An account with that email already exists.');
         }
 
-        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $allowed  = ['android', 'ios', 'both', 'other'];
+        $platform = in_array($platform, $allowed) ? $platform : 'other';
+        $hash     = password_hash($password, PASSWORD_BCRYPT);
+
         return Database::insert('beta_users', [
             'email'         => $email,
             'password_hash' => $hash,
             'name'          => trim($name),
+            'platform'      => $platform,
             'approved'      => 1,
         ]);
     }

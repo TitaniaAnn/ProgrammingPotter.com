@@ -14,12 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm  = $_POST['confirm'] ?? '';
+    $platform = in_array($_POST['platform'] ?? '', ['android','ios','both','other']) ? $_POST['platform'] : 'other';
 
     if ($password !== $confirm) {
         $error = 'Passwords do not match.';
     } else {
         try {
-            BetaAuth::register($email, $password, $name);
+            BetaAuth::register($email, $password, $name, $platform);
             $success = true;
         } catch (RuntimeException $e) {
             $error = $e->getMessage();
@@ -78,6 +79,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="confirm">Confirm Password</label>
                 <input type="password" id="confirm" name="confirm" required
                        placeholder="••••••••">
+            </div>
+            <div class="beta-form__group">
+                <label>Platform</label>
+                <div class="beta-toggle-group">
+                    <?php foreach (['android' => 'Android', 'ios' => 'iOS', 'both' => 'Both', 'other' => 'Other'] as $val => $label): ?>
+                    <label class="beta-toggle-option">
+                        <input type="radio" name="platform" value="<?= $val ?>"
+                               <?= (($_POST['platform'] ?? 'android') === $val) ? 'checked' : '' ?>>
+                        <span><?= $label ?></span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
             </div>
             <button type="submit" class="beta-btn beta-btn--primary">Create Account</button>
         </form>

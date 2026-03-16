@@ -80,6 +80,14 @@ class Mailer {
         self::send($order['customer_email'], $subject, $body, setting('contact_email'));
     }
 
+    /**
+     * Send a custom message to a beta tester.
+     */
+    public static function sendBetaEmail(string $toEmail, string $toName, string $subject, string $body): void {
+        $personalised = "Hi {$toName},\n\n" . $body . "\n\n— " . setting('site_name', 'My Pottery Studio') . " Beta Team";
+        self::send($toEmail, $subject, $personalised, setting('contact_email'));
+    }
+
     private static function send(string $to, string $subject, string $body, string $replyTo = ''): void {
         $headers = "From: " . setting('site_name', 'My Pottery') . " <" . setting('contact_email') . ">\r\n";
         $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";

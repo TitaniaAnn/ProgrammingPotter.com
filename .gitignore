@@ -2,3 +2,4 @@
 DockerFile
 STRIPE_SETUP.md
 docker-compose.yml
+l.env

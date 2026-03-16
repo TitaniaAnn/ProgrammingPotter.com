@@ -63,6 +63,59 @@ img { max-width: 100%; display: block; }
 .beta-auth-card__footer {
     text-align: center; margin-top: 1.5rem; font-size: .88rem; color: var(--text-muted);
 }
+.beta-auth-wrap--wide { max-width: 580px; }
+
+/* ── Privacy policy page ─────────────────────────────────────── */
+.beta-policy-body { align-items: flex-start; padding: 2rem 0; }
+.beta-policy-card { max-width: 100%; }
+.beta-policy-meta { font-size: .78rem; color: var(--stone); margin-bottom: 1.5rem; }
+.beta-policy-content { font-size: .9rem; color: var(--stone-lt); line-height: 1.75; }
+.beta-policy-content h2 {
+    font-family: var(--font-display); font-size: 1.05rem;
+    color: var(--parchment); margin: 1.5rem 0 .5rem;
+}
+.beta-policy-content p  { margin-bottom: .75rem; }
+.beta-policy-content ul { padding-left: 1.25rem; margin-bottom: .75rem; }
+.beta-policy-content li { margin-bottom: .3rem; }
+.beta-policy-content strong { color: var(--text); }
+.beta-policy-content a { color: var(--gold); }
+.beta-policy-content a:hover { color: var(--gold-lt); }
+
+/* ── Agreement box ───────────────────────────────────────────── */
+.beta-agreement-box {
+    position: relative;
+    max-height: 140px; overflow: hidden;
+    background: rgba(255,255,255,.04); border: 1px solid var(--beta-border);
+    border-radius: var(--radius); transition: max-height .35s ease;
+}
+.beta-agreement-box--expanded { max-height: 600px; overflow-y: auto; }
+.beta-agreement-text {
+    padding: 1rem 1.1rem; font-size: .82rem; color: var(--stone-lt); line-height: 1.65;
+}
+.beta-agreement-text p { margin-bottom: .75rem; }
+.beta-agreement-text p:last-child { margin-bottom: 0; }
+.beta-agreement-text strong { color: var(--text); }
+.beta-agreement-fade {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--beta-surface));
+    pointer-events: none;
+}
+.beta-agreement-expand {
+    background: none; border: none; color: var(--gold); font-size: .82rem;
+    font-family: var(--font-body); cursor: pointer; padding: .35rem 0 0;
+    transition: color var(--transition);
+}
+.beta-agreement-expand:hover { color: var(--gold-lt); }
+
+/* ── Checkbox label ──────────────────────────────────────────── */
+.beta-checkbox-label {
+    display: flex; align-items: flex-start; gap: .6rem;
+    cursor: pointer; font-size: .9rem; color: var(--text);
+}
+.beta-checkbox-label input[type="checkbox"] {
+    width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;
+    accent-color: var(--gold); cursor: pointer;
+}
 
 /* ── BETA BADGE ──────────────────────────────────────────────── */
 .beta-badge {
@@ -269,7 +322,91 @@ img { max-width: 100%; display: block; }
     font-family: var(--font-body); transition: all var(--transition);
 }
 .beta-filter-btn:hover { border-color: var(--stone); color: var(--text); }
-.beta-filter-btn.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+.beta-filter-btn.active,
+.beta-filter-btn--active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+
+/* ── Sub-filters (submissions tab) ──────────────────────────── */
+.beta-sub-filter-btn {
+    padding: .35rem .8rem; border-radius: 20px;
+    border: 1px solid var(--beta-border); background: transparent;
+    color: var(--stone-lt); font-size: .82rem; cursor: pointer;
+    font-family: var(--font-body); transition: all var(--transition);
+}
+.beta-sub-filter-btn:hover { border-color: var(--stone); color: var(--text); }
+.beta-sub-filter-btn--active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+
+/* ── Sort select ─────────────────────────────────────────────── */
+.beta-select {
+    background: rgba(255,255,255,.06); border: 1px solid var(--beta-border);
+    border-radius: var(--radius); color: var(--text);
+    padding: .3rem .6rem; font-family: var(--font-body); font-size: .82rem;
+    cursor: pointer;
+}
+.beta-select:focus { outline: none; border-color: var(--gold); }
+
+/* ── Sub-tabs ────────────────────────────────────────────────── */
+.beta-subtabs {
+    display: flex; gap: 0; margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--beta-border);
+}
+.beta-subtab {
+    padding: .6rem 1.25rem; background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    font-family: var(--font-body); font-size: .9rem; font-weight: 600;
+    color: var(--stone-lt); cursor: pointer; transition: all var(--transition);
+}
+.beta-subtab:hover { color: var(--text); }
+.beta-subtab--active { color: var(--gold-lt); border-bottom-color: var(--gold); }
+
+/* ── Submission cards (with voting) ─────────────────────────── */
+.beta-sub-card {
+    background: var(--beta-surface); border: 1px solid var(--beta-border);
+    border-radius: 8px; display: flex; gap: 0;
+    transition: border-color var(--transition);
+}
+.beta-sub-card:hover { border-color: rgba(212,168,32,.35); }
+
+.beta-vote-col {
+    display: flex; flex-direction: column; align-items: center;
+    gap: .2rem; padding: .9rem .75rem;
+    border-right: 1px solid var(--beta-border);
+    min-width: 52px;
+}
+.beta-vote-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: .95rem; line-height: 1; padding: .2rem .35rem;
+    border-radius: 3px; color: var(--stone);
+    transition: all var(--transition);
+}
+.beta-vote-btn:hover:not(:disabled) { color: var(--text); background: rgba(255,255,255,.08); }
+.beta-vote-btn:disabled { opacity: .5; cursor: default; }
+.beta-vote-btn--active-up   { color: var(--gold) !important; }
+.beta-vote-btn--active-down { color: #E57373 !important; }
+
+.beta-vote-score {
+    font-size: .88rem; font-weight: 700; color: var(--text);
+    min-width: 1.5rem; text-align: center; line-height: 1;
+}
+
+.beta-sub-card__body { flex: 1; padding: .9rem 1.1rem; min-width: 0; }
+.beta-sub-card__header {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    margin-bottom: .4rem;
+}
+.beta-sub-card__title { font-weight: 700; color: var(--parchment); font-size: .97rem; }
+.beta-sub-card__desc  { font-size: .85rem; color: var(--stone-lt); margin-bottom: .5rem; line-height: 1.5; }
+.beta-sub-card__meta  {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    font-size: .78rem; color: var(--stone);
+}
+.beta-vote-tally { color: var(--stone); font-size: .76rem; }
+.beta-gh-link    { color: var(--gold); font-size: .78rem; }
+.beta-gh-link:hover { color: var(--gold-lt); }
+
+/* Type/status label colours */
+.beta-type-bug      { background: rgba(229,115,115,.2); color: #FFAAAA; }
+.beta-type-feature  { background: rgba(100,181,246,.2); color: #90CAF9; }
+.beta-status-progress { background: rgba(255,167,38,.2); color: #FFCC80; }
 
 .beta-issues-list { display: flex; flex-direction: column; gap: .75rem; }
 

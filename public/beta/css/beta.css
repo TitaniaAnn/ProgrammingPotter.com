@@ -63,6 +63,43 @@ img { max-width: 100%; display: block; }
 .beta-auth-card__footer {
     text-align: center; margin-top: 1.5rem; font-size: .88rem; color: var(--text-muted);
 }
+.beta-auth-wrap--wide { max-width: 580px; }
+
+/* ── Agreement box ───────────────────────────────────────────── */
+.beta-agreement-box {
+    position: relative;
+    max-height: 140px; overflow: hidden;
+    background: rgba(255,255,255,.04); border: 1px solid var(--beta-border);
+    border-radius: var(--radius); transition: max-height .35s ease;
+}
+.beta-agreement-box--expanded { max-height: 600px; overflow-y: auto; }
+.beta-agreement-text {
+    padding: 1rem 1.1rem; font-size: .82rem; color: var(--stone-lt); line-height: 1.65;
+}
+.beta-agreement-text p { margin-bottom: .75rem; }
+.beta-agreement-text p:last-child { margin-bottom: 0; }
+.beta-agreement-text strong { color: var(--text); }
+.beta-agreement-fade {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--beta-surface));
+    pointer-events: none;
+}
+.beta-agreement-expand {
+    background: none; border: none; color: var(--gold); font-size: .82rem;
+    font-family: var(--font-body); cursor: pointer; padding: .35rem 0 0;
+    transition: color var(--transition);
+}
+.beta-agreement-expand:hover { color: var(--gold-lt); }
+
+/* ── Checkbox label ──────────────────────────────────────────── */
+.beta-checkbox-label {
+    display: flex; align-items: flex-start; gap: .6rem;
+    cursor: pointer; font-size: .9rem; color: var(--text);
+}
+.beta-checkbox-label input[type="checkbox"] {
+    width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;
+    accent-color: var(--gold); cursor: pointer;
+}
 
 /* ── BETA BADGE ──────────────────────────────────────────────── */
 .beta-badge {

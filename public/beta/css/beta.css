@@ -65,6 +65,22 @@ img { max-width: 100%; display: block; }
 }
 .beta-auth-wrap--wide { max-width: 580px; }
 
+/* ── Privacy policy page ─────────────────────────────────────── */
+.beta-policy-body { align-items: flex-start; padding: 2rem 0; }
+.beta-policy-card { max-width: 100%; }
+.beta-policy-meta { font-size: .78rem; color: var(--stone); margin-bottom: 1.5rem; }
+.beta-policy-content { font-size: .9rem; color: var(--stone-lt); line-height: 1.75; }
+.beta-policy-content h2 {
+    font-family: var(--font-display); font-size: 1.05rem;
+    color: var(--parchment); margin: 1.5rem 0 .5rem;
+}
+.beta-policy-content p  { margin-bottom: .75rem; }
+.beta-policy-content ul { padding-left: 1.25rem; margin-bottom: .75rem; }
+.beta-policy-content li { margin-bottom: .3rem; }
+.beta-policy-content strong { color: var(--text); }
+.beta-policy-content a { color: var(--gold); }
+.beta-policy-content a:hover { color: var(--gold-lt); }
+
 /* ── Agreement box ───────────────────────────────────────────── */
 .beta-agreement-box {
     position: relative;

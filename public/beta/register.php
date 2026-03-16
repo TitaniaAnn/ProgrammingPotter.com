@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="beta-checkbox-label">
                     <input type="checkbox" name="agreement" value="1" required
                            <?= !empty($_POST['agreement']) ? 'checked' : '' ?>>
-                    <span>I have read and agree to the <strong>Beta Test Agreement</strong></span>
+                    <span>I have read and agree to the <strong>Beta Test Agreement</strong> and <a href="/beta/privacy.php" target="_blank">Privacy Policy</a></span>
                 </label>
             </div>
 

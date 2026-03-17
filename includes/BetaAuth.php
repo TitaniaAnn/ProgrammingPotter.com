@@ -46,8 +46,7 @@ class BetaAuth {
             throw new RuntimeException('An account with that email already exists.');
         }
 
-        $allowed  = ['android', 'ios', 'both', 'other'];
-        $platform = in_array($platform, $allowed) ? $platform : 'other';
+        $platform = in_array($platform, ['android', 'ios']) ? $platform : 'android';
         $hash     = password_hash($password, PASSWORD_BCRYPT);
 
         return Database::insert('beta_users', [

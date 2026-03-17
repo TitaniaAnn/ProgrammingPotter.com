@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm  = $_POST['confirm'] ?? '';
-    $platform = in_array($_POST['platform'] ?? '', ['android','ios','both','other']) ? $_POST['platform'] : 'other';
+    $platform = in_array($_POST['platform'] ?? '', ['android','ios']) ? $_POST['platform'] : 'android';
     $agreed   = !empty($_POST['agreement']);
     $eulaAgreed = !empty($_POST['eula']);
 
@@ -87,13 +87,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="beta-form__group">
                 <label>Platform</label>
                 <div class="beta-toggle-group">
-                    <?php foreach (['android' => 'Android', 'ios' => 'iOS', 'both' => 'Both', 'other' => 'Other'] as $val => $label): ?>
                     <label class="beta-toggle-option">
-                        <input type="radio" name="platform" value="<?= $val ?>"
-                               <?= (($_POST['platform'] ?? 'android') === $val) ? 'checked' : '' ?>>
-                        <span><?= $label ?></span>
+                        <input type="radio" name="platform" value="android" required
+                               <?= (($_POST['platform'] ?? '') === 'android') ? 'checked' : '' ?>>
+                        <span>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M17.523 15.341a1 1 0 01-1 1H7.477a1 1 0 01-1-1V9a1 1 0 011-1h9.046a1 1 0 011 1v6.341zM7.5 6.5L5.5 4M16.5 6.5L18.5 4M8.5 17.5v2a.5.5 0 001 0v-2M14.5 17.5v2a.5.5 0 001 0v-2M15.477 8H8.523C7.682 8 7 8.682 7 9.523v5.954C7 16.318 7.682 17 8.523 17h6.954C16.318 17 17 16.318 17 15.477V9.523C17 8.682 16.318 8 15.477 8z"/></svg>
+                            Android
+                        </span>
                     </label>
-                    <?php endforeach; ?>
+                    <label class="beta-toggle-option">
+                        <input type="radio" name="platform" value="ios" required
+                               <?= (($_POST['platform'] ?? '') === 'ios') ? 'checked' : '' ?>>
+                        <span>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            iOS (Apple)
+                        </span>
+                    </label>
                 </div>
             </div>
 

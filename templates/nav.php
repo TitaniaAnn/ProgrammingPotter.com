@@ -8,7 +8,7 @@
             <li><a href="/portfolio.php" class="nav__link">Portfolio</a></li>
             <li><a href="/shop.php" class="nav__link">Shop</a></li>
             <li><a href="/about.php" class="nav__link">About</a></li>
-            <li><a href="/beta/" class="nav__link nav__link--beta">Beta</a></li>
+            <li><a href="https://mypotterystudio.com" class="nav__link" target="_blank" rel="noopener">App</a></li>
         </ul>
         <button class="nav__burger" aria-label="Menu" id="burger">
             <span></span><span></span><span></span>
@@ -20,6 +20,6 @@
         <a href="/portfolio.php" class="nav__mobile-link">Portfolio</a>
         <a href="/shop.php" class="nav__mobile-link">Shop</a>
         <a href="/about.php" class="nav__mobile-link">About</a>
-        <a href="/beta/" class="nav__mobile-link nav__mobile-link--beta">Beta</a>
+        <a href="https://mypotterystudio.com" class="nav__mobile-link" target="_blank" rel="noopener">App</a>
     </div>
 </nav>

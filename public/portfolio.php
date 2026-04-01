@@ -19,24 +19,19 @@ $pieces = Database::fetchAll(
         e.url as event_url,
         e.event_type as event_type
     FROM pottery p
-    LEFT JOIN event_pottery ep ON p.id = ep.pottery_id
-    LEFT JOIN events e ON ep.event_id = e.id 
-        AND e.publish_date IS NOT NULL 
-        AND e.publish_date <= CURDATE()
-    $where
-    GROUP BY p.id
-    HAVING e.id = (
-        SELECT ep2.event_id 
-        FROM event_pottery ep2
-        LEFT JOIN events e2 ON e2.id = ep2.event_id
-        WHERE ep2.pottery_id = p.id 
+    LEFT JOIN events e ON e.id = (
+        SELECT ep.event_id
+        FROM event_pottery ep
+        LEFT JOIN events e2 ON e2.id = ep.event_id
+        WHERE ep.pottery_id = p.id
             AND e2.publish_date IS NOT NULL 
             AND e2.publish_date <= CURDATE()
         ORDER BY 
             CASE WHEN e2.start_date > CURDATE() THEN 0 ELSE 1 END,
             CASE WHEN e2.start_date > CURDATE() THEN e2.start_date ELSE e2.end_date END DESC
         LIMIT 1
-    ) OR e.id IS NULL
+    )
+    $where
     ORDER BY p.featured DESC, p.sort_order ASC, p.created_at DESC",
     $params
 );

@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'url'         => trim($_POST['url'] ?? ''),
             'start_date'  => !empty($_POST['start_date']) ? $_POST['start_date'] : null,
             'end_date'    => !empty($_POST['end_date']) ? $_POST['end_date'] : null,
-            'publish_date' => !empty($_POST['publish_date']) ? $_POST['publish_date'] : null,
+            'publish_date' => !empty($_POST['publish_date']) ? $_POST['publish_date'] : ($event['publish_date'] ?? date('Y-m-d')),
             'featured'    => isset($_POST['featured']) ? 1 : 0,
             'sort_order'  => (int)($_POST['sort_order'] ?? 0),
         ];

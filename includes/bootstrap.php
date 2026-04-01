@@ -22,7 +22,6 @@ require_once ROOT_PATH . '/includes/Auth.php';
 require_once ROOT_PATH . '/includes/ImageUpload.php';
 require_once ROOT_PATH . '/includes/Stripe.php';
 require_once ROOT_PATH . '/includes/Mailer.php';
-require_once ROOT_PATH . '/includes/GitHubAPI.php';
 
 Auth::start();
 

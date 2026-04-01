@@ -156,14 +156,6 @@ body { padding-top: 68px; }
 }
 .nav__link:hover { color: var(--warm-white); }
 .nav__link:hover::after { right: 0; }
-.nav__link--beta, .nav__mobile-link--beta {
-    background: var(--clay); color: #000 !important;
-    padding: .25rem .7rem; border-radius: 3px;
-    font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    line-height: 1;
-}
-.nav__link--beta::after { display: none; }
-.nav__link--beta:hover { background: var(--clay-lt); color: #000 !important; }
 .nav__burger {
     display: none; flex-direction: column; gap: 5px;
     background: none; border: none; cursor: pointer; padding: 4px;
@@ -402,6 +394,18 @@ body.lightbox-open .masonry-item__overlay { opacity: 0 !important; }
 .page-header { padding: 2.5rem 0 0; }
 .page-header__title { font-family: var(--font-display); font-style: italic; font-size: clamp(2rem, 5vw, 3rem); color: var(--bark); margin-bottom: .35rem; }
 .page-header__sub { color: var(--stone); font-size: 1rem; margin-bottom: 1.75rem; }
+
+/* ============================================================
+   PROSE (long-form text pages: privacy policy, terms, etc.)
+   ============================================================ */
+.prose { max-width: 720px; }
+.prose__meta { color: var(--stone); font-size: .9rem; margin-bottom: 1.75rem; }
+.prose h2 { font-family: var(--font-display); font-style: italic; font-size: 1.3rem; color: var(--bark); margin: 2rem 0 .5rem; }
+.prose p, .prose li { font-size: 1rem; line-height: 1.75; color: var(--ink); margin-bottom: .75rem; }
+.prose ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+.prose li { margin-bottom: .4rem; }
+.prose a { color: var(--sage); text-decoration: underline; }
+.prose a:hover { color: var(--bark); }
 
 .portfolio-filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 2rem; padding-bottom: .25rem; }
 .filter-btn {

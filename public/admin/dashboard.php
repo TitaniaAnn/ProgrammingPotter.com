@@ -9,6 +9,7 @@ $stats = [
     'available' => Database::fetchOne("SELECT COUNT(*) as n FROM products WHERE status = 'available'")['n'] ?? 0,
     'orders_new'=> Database::fetchOne("SELECT COUNT(*) as n FROM orders WHERE status = 'paid'")['n'] ?? 0,
     'revenue'   => Database::fetchOne("SELECT COALESCE(SUM(product_price * quantity),0) as n FROM orders WHERE status IN ('paid','shipped')")['n'] ?? 0,
+    'templates' => Database::fetchOne("SELECT COUNT(*) as n FROM pottery_templates")['n'] ?? 0,
 ];
 $recent = Database::fetchAll("SELECT * FROM pottery ORDER BY created_at DESC LIMIT 5");
 $user = Auth::getUser();
@@ -52,6 +53,10 @@ $user = Auth::getUser();
                 <div class="stat-card__num">$<?= number_format($stats['revenue'], 0) ?></div>
                 <div class="stat-card__label">Total Revenue</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-card__num"><?= $stats['templates'] ?></div>
+                <div class="stat-card__label">Templates</div>
+            </div>
         </div>
 
         <!-- Quick Actions -->
@@ -73,6 +78,10 @@ $user = Auth::getUser();
                 <a href="/admin/social/index.php" class="quick-action-btn">
                     <span class="quick-action-btn__icon">📸</span>
                     <span>Manage Social Posts</span>
+                </a>
+                <a href="/admin/templates/add.php" class="quick-action-btn">
+                    <span class="quick-action-btn__icon">📄</span>
+                    <span>Add Template</span>
                 </a>
                 <a href="/admin/settings/index.php" class="quick-action-btn">
                     <span class="quick-action-btn__icon">⚙️</span>

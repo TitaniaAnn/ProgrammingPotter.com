@@ -14,7 +14,7 @@ $featured = Database::fetchAll(
         e.url as event_url,
         e.event_type as event_type
     FROM pottery p
-    LEFT JOIN event_pottery ep ON p.id = ep.poetry_id
+    LEFT JOIN event_pottery ep ON p.id = ep.pottery_id
     LEFT JOIN events e ON ep.event_id = e.id 
         AND e.publish_date IS NOT NULL 
         AND e.publish_date <= CURDATE()

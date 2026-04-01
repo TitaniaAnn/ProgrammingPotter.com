@@ -17,6 +17,8 @@
 
 ## Build and Test
 - Install dependencies: `composer install`
+- Run local dev server from repo root: `php -S localhost:8000 -t public`
+- Quick PHP syntax check before/after edits: `find . -path ./vendor -prune -o -name "*.php" -print | xargs -n1 php -l`
 - No formal test suite is present. Validate changes with targeted page-level/manual checks.
 - Database initialization/migrations are SQL-first (`sql/init.sql`, `sql/schema.sql`, `sql/*.sql`, `patches/*.php`).
 - Deployment is GitHub Actions FTP sync on push to `main` (`.github/workflows/deploy.yml`).

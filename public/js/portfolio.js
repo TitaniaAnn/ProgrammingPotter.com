@@ -30,9 +30,19 @@ document.addEventListener('DOMContentLoaded', function () {
         var t = trigger.getAttribute('data-technique');
         var d = trigger.getAttribute('data-dimensions');
         var y = trigger.getAttribute('data-year');
+        var eventName = trigger.getAttribute('data-event-name');
+        var eventUrl = trigger.getAttribute('data-event-url');
+        
         if (t) meta += '<dt>Technique</dt><dd>' + t + '</dd>';
         if (d) meta += '<dt>Dimensions</dt><dd>' + d + '</dd>';
         if (y) meta += '<dt>Year</dt><dd>' + y + '</dd>';
+        if (eventName) {
+            meta += '<dt>Featured Event</dt><dd>' + eventName;
+            if (eventUrl) {
+                meta += ' <a href="' + eventUrl + '" target="_blank" rel="noopener" class="event-link">View →</a>';
+            }
+            meta += '</dd>';
+        }
         lbMeta.innerHTML = meta;
 
         showImage();

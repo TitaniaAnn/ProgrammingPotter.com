@@ -5,12 +5,39 @@ $technique = $_GET['technique'] ?? '';
 $params = [];
 $where = '';
 if ($technique) {
-    $where = 'WHERE technique = ?';
+    $where = 'WHERE p.technique = ?';
     $params[] = $technique;
 }
 
+// Fetch pottery with best matching event per piece
+// "Best matching" = nearest upcoming event by start_date, or currently active event if no upcoming
 $pieces = Database::fetchAll(
-    "SELECT * FROM pottery $where ORDER BY featured DESC, sort_order ASC, created_at DESC",
+    "SELECT 
+        p.*,
+        e.id as event_id,
+        e.name as event_name,
+        e.url as event_url,
+        e.event_type as event_type
+    FROM pottery p
+    LEFT JOIN event_pottery ep ON p.id = ep.pottery_id
+    LEFT JOIN events e ON ep.event_id = e.id 
+        AND e.publish_date IS NOT NULL 
+        AND e.publish_date <= CURDATE()
+    $where
+    GROUP BY p.id
+    HAVING e.id = (
+        SELECT ep2.event_id 
+        FROM event_pottery ep2
+        LEFT JOIN events e2 ON e2.id = ep2.event_id
+        WHERE ep2.pottery_id = p.id 
+            AND e2.publish_date IS NOT NULL 
+            AND e2.publish_date <= CURDATE()
+        ORDER BY 
+            CASE WHEN e2.start_date > CURDATE() THEN 0 ELSE 1 END,
+            CASE WHEN e2.start_date > CURDATE() THEN e2.start_date ELSE e2.end_date END DESC
+        LIMIT 1
+    ) OR e.id IS NULL
+    ORDER BY p.featured DESC, p.sort_order ASC, p.created_at DESC",
     $params
 );
 
@@ -92,13 +119,21 @@ try {
                    data-desc='<?= e($piece['description'] ?? '') ?>'
                    data-technique='<?= e($piece['technique'] ?? '') ?>'
                    data-dimensions='<?= e($piece['dimensions'] ?? '') ?>'
-                   data-year='<?= e($piece['year'] ?? '') ?>'>
+                   data-year='<?= e($piece['year'] ?? '') ?>'
+                   data-event-name='<?= e($piece['event_name'] ?? '') ?>'
+                   data-event-url='<?= e($piece['event_url'] ?? '') ?>'
+                   data-event-type='<?= e($piece['event_type'] ?? '') ?>'>
                     <img src="/uploads/<?= e($pieceImgs[0]['image_thumb'] ?? $pieceImgs[0]['image_path']) ?>"
                          alt="<?= e($piece['title']) ?>" loading="lazy">
                     <div class="masonry-item__overlay">
                         <h3><?= e($piece['title']) ?></h3>
                         <?php if ($piece['technique']): ?><span><?= e($piece['technique']) ?></span><?php endif; ?>
                     </div>
+                    <?php if (!empty($piece['event_name'])): ?>
+                    <div class="masonry-item__event-ribbon masonry-item__event-ribbon--<?= e($piece['event_type'] ?? 'event') ?>">
+                        <?= e($piece['event_name']) ?>
+                    </div>
+                    <?php endif; ?>
                     <?php if (count($pieceImgs) > 1): ?>
                     <div class="masonry-item__count">⬡ <?= count($pieceImgs) ?></div>
                     <?php endif; ?>

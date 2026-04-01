@@ -491,6 +491,38 @@ body.lightbox-open .masonry-item__overlay { opacity: 0 !important; }
     backdrop-filter: blur(4px);
 }
 
+/* Event ribbon on pottery cards (corner badge) */
+.pottery-card__event-ribbon {
+    position: absolute; top: 0; right: 0;
+    background: var(--terra); color: #fff;
+    padding: .4rem .75rem;
+    font-size: .65rem; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 85% 100%, 0 100%);
+    padding-right: .9rem; padding-bottom: .5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.pottery-card__event-ribbon--pottery_show { background: var(--clay); }
+.pottery-card__event-ribbon--pottery_sale { background: var(--sage); }
+.pottery-card__event-ribbon--storefront_sale { background: var(--clay); }
+.pottery-card__event-ribbon--class { background: var(--terra); }
+
+/* Event ribbon on masonry gallery items */
+.masonry-item__event-ribbon {
+    position: absolute; top: 0; right: 0;
+    background: var(--terra); color: #fff;
+    padding: .4rem .75rem;
+    font-size: .65rem; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 85% 100%, 0 100%);
+    padding-right: .9rem; padding-bottom: .5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.masonry-item__event-ribbon--pottery_show { background: var(--clay); }
+.masonry-item__event-ribbon--pottery_sale { background: var(--sage); }
+.masonry-item__event-ribbon--storefront_sale { background: var(--clay); }
+.masonry-item__event-ribbon--class { background: var(--terra); }
+
 /* ============================================================
    PRODUCT CARDS
    ============================================================ */

@@ -4,8 +4,36 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 require_once __DIR__ . '/../includes/bootstrap.php';
 
+// Fetch featured pottery with best matching event per piece
+// "Best matching" = nearest upcoming event by start_date, or currently active event if no upcoming
 $featured = Database::fetchAll(
-    "SELECT * FROM pottery WHERE featured = 1 ORDER BY sort_order ASC, created_at DESC LIMIT 6"
+    "SELECT 
+        p.*,
+        e.id as event_id,
+        e.name as event_name,
+        e.url as event_url,
+        e.event_type as event_type
+    FROM pottery p
+    LEFT JOIN event_pottery ep ON p.id = ep.poetry_id
+    LEFT JOIN events e ON ep.event_id = e.id 
+        AND e.publish_date IS NOT NULL 
+        AND e.publish_date <= CURDATE()
+    WHERE p.featured = 1
+    GROUP BY p.id
+    HAVING e.id = (
+        SELECT ep2.event_id 
+        FROM event_pottery ep2
+        LEFT JOIN events e2 ON e2.id = ep2.event_id
+        WHERE ep2.pottery_id = p.id 
+            AND e2.publish_date IS NOT NULL 
+            AND e2.publish_date <= CURDATE()
+        ORDER BY 
+            CASE WHEN e2.start_date > CURDATE() THEN 0 ELSE 1 END,
+            CASE WHEN e2.start_date > CURDATE() THEN e2.start_date ELSE e2.end_date END DESC
+        LIMIT 1
+    ) OR e.id IS NULL
+    ORDER BY p.sort_order ASC, p.created_at DESC 
+    LIMIT 6"
 );
 $socialLinks = Database::fetchAll(
     "SELECT * FROM social_links WHERE active = 1 ORDER BY sort_order ASC"
@@ -114,6 +142,11 @@ $socialPosts = Database::fetchAll(
                     <div class="pottery-card__overlay">
                         <span class="pottery-card__view">View Piece</span>
                     </div>
+                    <?php if (!empty($piece['event_name'])): ?>
+                    <div class="pottery-card__event-ribbon pottery-card__event-ribbon--<?= e($piece['event_type'] ?? 'event') ?>">
+                        <?= e($piece['event_name']) ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="pottery-card__info">
                     <h3 class="pottery-card__title"><?= e($piece['title']) ?></h3>

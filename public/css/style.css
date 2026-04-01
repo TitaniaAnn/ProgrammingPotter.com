@@ -633,6 +633,43 @@ body.lightbox-open .masonry-item__overlay { opacity: 0 !important; }
 .flash--success { background: #edf7ee; color: #2d6a30; border: 1px solid #b8deba; }
 .flash--error   { background: #fdf0ef; color: #a33028; border: 1px solid #f0c5c2; }
 
+/* Homepage events preview */
+.events-preview__empty { padding: 2.5rem 2rem; }
+.event-card {
+    background: var(--warm-white);
+    border: 1px solid var(--linen);
+    border-left: 4px solid var(--clay);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.event-card__type {
+    display: inline-block;
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: .5rem;
+}
+.event-card__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--ink);
+    margin-bottom: .35rem;
+}
+.event-card__meta,
+.event-card__date {
+    color: var(--stone);
+    font-size: .92rem;
+    margin-bottom: .35rem;
+}
+.event-card__desc {
+    color: var(--ink);
+    font-size: .95rem;
+    margin: .5rem 0 .9rem;
+}
+
 
 /* ============================================================
    HERO SCROLL HINT

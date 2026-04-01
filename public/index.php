@@ -36,6 +36,32 @@ $socialLinks = Database::fetchAll(
 $socialPosts = Database::fetchAll(
     "SELECT * FROM social_posts WHERE featured = 1 ORDER BY sort_order ASC LIMIT 6"
 );
+
+$events = Database::fetchAll(
+        "SELECT *
+         FROM events
+         WHERE publish_date IS NOT NULL
+             AND publish_date <= CURDATE()
+             AND (end_date IS NULL OR end_date >= CURDATE())
+         ORDER BY
+             CASE WHEN start_date IS NULL THEN 1 ELSE 0 END,
+             CASE WHEN start_date >= CURDATE() THEN 0 ELSE 1 END,
+             start_date ASC,
+             sort_order ASC,
+             created_at DESC
+         LIMIT 3"
+);
+
+function eventTypeLabel(string $type): string {
+        $labels = [
+                'pottery_show' => 'Pottery Show',
+                'pottery_sale' => 'Pottery Sale',
+                'storefront_sale' => 'Storefront Sale',
+                'class' => 'Class',
+        ];
+
+        return $labels[$type] ?? 'Event';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -155,6 +181,50 @@ $socialPosts = Database::fetchAll(
     </div>
 </section>
 <?php endif; ?>
+
+<!-- EVENTS PREVIEW -->
+<section class="section events-preview">
+    <div class="container">
+        <div class="section__header">
+            <h2 class="section__title">Events</h2>
+        </div>
+
+        <?php if (empty($events)): ?>
+        <p class="empty-state events-preview__empty">More events coming soon</p>
+        <?php else: ?>
+        <div class="grid grid--3">
+            <?php foreach ($events as $event): ?>
+            <article class="event-card">
+                <div class="event-card__type"><?= e(eventTypeLabel($event['event_type'])) ?></div>
+                <h3 class="event-card__title"><?= e($event['name']) ?></h3>
+
+                <?php if (!empty($event['location'])): ?>
+                <p class="event-card__meta"><?= e($event['location']) ?></p>
+                <?php endif; ?>
+
+                <p class="event-card__date">
+                    <?php if (!empty($event['start_date']) && !empty($event['end_date'])): ?>
+                        <?= e(date('M j', strtotime($event['start_date']))) ?> - <?= e(date('M j, Y', strtotime($event['end_date']))) ?>
+                    <?php elseif (!empty($event['start_date'])): ?>
+                        <?= e(date('M j, Y', strtotime($event['start_date']))) ?>
+                    <?php else: ?>
+                        Date to be announced
+                    <?php endif; ?>
+                </p>
+
+                <?php if (!empty($event['description'])): ?>
+                <p class="event-card__desc"><?= e($event['description']) ?></p>
+                <?php endif; ?>
+
+                <?php if (!empty($event['url'])): ?>
+                <a href="<?= e($event['url']) ?>" target="_blank" rel="noopener" class="btn btn--small btn--outline--dark">Learn More</a>
+                <?php endif; ?>
+            </article>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</section>
 
 <!-- ABOUT STRIP -->
 <section class="about-strip">

@@ -13,6 +13,13 @@ $socialLinks = Database::fetchAll(
 $socialPosts = Database::fetchAll(
     "SELECT * FROM social_posts WHERE featured = 1 ORDER BY sort_order ASC LIMIT 6"
 );
+$upcomingEvents = Database::fetchAll(
+    "SELECT * FROM events
+     WHERE status = 'published'
+     AND start_date >= CURDATE()
+     ORDER BY start_date ASC
+     LIMIT 3"
+);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,6 +129,67 @@ $socialPosts = Database::fetchAll(
                     <?php endif; ?>
                 </div>
             </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- UPCOMING EVENTS -->
+<?php if (!empty($upcomingEvents)): ?>
+<section class="section events-preview">
+    <div class="container">
+        <div class="section__header">
+            <h2 class="section__title">Upcoming Events</h2>
+            <a href="/events.php" class="section__link">View all events →</a>
+        </div>
+        <div class="events-preview__grid">
+            <?php foreach ($upcomingEvents as $event): ?>
+            <div class="event-preview-card">
+                <div class="event-preview-card__header">
+                    <span class="event-type-badge event-type-badge--<?= $event['type'] ?>">
+                        <?= ucfirst($event['type']) ?>
+                    </span>
+                    <div class="event-preview-card__date">
+                        <div class="event-date">
+                            <span class="event-date__month"><?= date('M', strtotime($event['start_date'])) ?></span>
+                            <span class="event-date__day"><?= date('j', strtotime($event['start_date'])) ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-preview-card__content">
+                    <h3 class="event-preview-card__title"><?= e($event['title']) ?></h3>
+                    <div class="event-preview-card__meta">
+                        <?php if ($event['start_time']): ?>
+                        <span class="event-time">
+                            <i class="fas fa-clock"></i>
+                            <?= date('g:i A', strtotime($event['start_time'])) ?>
+                        </span>
+                        <?php endif; ?>
+                        <?php if ($event['location']): ?>
+                        <span class="event-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <?= e($event['location']) ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($event['description']): ?>
+                    <p class="event-preview-card__description">
+                        <?= e(substr($event['description'], 0, 120)) ?>
+                        <?php if (strlen($event['description']) > 120): ?>...<?php endif; ?>
+                    </p>
+                    <?php endif; ?>
+                    <?php if ($event['website_url']): ?>
+                    <a href="<?= e($event['website_url']) ?>" target="_blank" class="btn btn--sm btn--outline">
+                        Visit Website
+                    </a>
+                    <?php elseif ($event['registration_required'] && $event['registration_url']): ?>
+                    <a href="<?= e($event['registration_url']) ?>" target="_blank" class="btn btn--sm btn--primary">
+                        Register
+                    </a>
+                    <?php endif; ?>
+                </div>
+            </div>
             <?php endforeach; ?>
         </div>
     </div>

@@ -28,6 +28,7 @@
 - Use flash message helpers for user feedback instead of inline ad-hoc session keys.
 - Follow existing upload paths and constraints (`UPLOAD_PATH`, `MAX_IMAGE_SIZE`, thumbnail constants).
 - Keep public-facing HTML escaped using `e()` unless raw HTML is explicitly intended.
+- For standalone patch scripts in `patches/*.php`, load `vendor/autoload.php` and `.env` (Dotenv `safeLoad`) before requiring `config/config.php`; do not require config first.
 
 ## Pitfalls
 - Required runtime inputs are in `.env`; missing DB/OAuth/Stripe env values can cause early failures.

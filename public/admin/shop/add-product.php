@@ -3,10 +3,21 @@ require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
 $categories = Database::fetchAll("SELECT * FROM shop_categories ORDER BY type, name");
+$isEdit = !empty($_GET['id']);
+$productId = $isEdit ? (int)($_GET['id'] ?? 0) : 0;
+$product = null;
+
+if ($isEdit) {
+    $product = Database::fetchOne("SELECT * FROM products WHERE id = ?", [$productId]);
+    if (!$product) {
+        flash('error', 'Product not found.');
+        redirect(SITE_URL . '/admin/shop/index.php');
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $type = $_POST['type'] ?? 'pot';
+        $type = $_POST['type'] ?? ($product['type'] ?? 'pot');
         $data = [
             'category_id' => (int)($_POST['category_id'] ?? 0) ?: null,
             'name'         => trim($_POST['name'] ?? ''),
@@ -29,6 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['image']['name'])) {
             $upload = ImageUpload::upload($_FILES['image'], 'products');
             $data['image_path'] = $upload['path'];
+        } elseif ($isEdit && !empty($product['image_path'])) {
+            $data['image_path'] = $product['image_path'];
+        }
+
+        if ($isEdit) {
+            Database::update('products', $data, 'id = :id', ['id' => $productId]);
+            flash('success', 'Product updated!');
+            redirect(SITE_URL . '/admin/shop/edit-product.php?id=' . $productId);
         }
 
         Database::insert('products', $data);
@@ -38,13 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = $e->getMessage();
     }
 }
+
+$formData = $_POST + ($product ?? []);
+$selectedType = $formData['type'] ?? 'pot';
+$currentImagePath = $product['image_path'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product — Admin</title>
+    <title><?= $isEdit ? 'Edit Product' : 'Add Product' ?> — Admin</title>
     <link rel="stylesheet" href="/admin/css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@400;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -54,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include __DIR__ . '/../partials/topbar.php'; ?>
     <div class="admin-content">
         <div class="admin-page-header">
-            <h1>Add Shop Product</h1>
+            <h1><?= $isEdit ? 'Edit Shop Product' : 'Add Shop Product' ?></h1>
             <a href="/admin/shop/index.php" class="admin-btn">← Back</a>
         </div>
 
@@ -65,12 +88,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" enctype="multipart/form-data" class="admin-form">
             <!-- Product Type Tabs -->
             <div class="type-tabs">
-                <label class="type-tab <?= ($_POST['type'] ?? 'pot') === 'pot' ? 'active' : '' ?>">
-                    <input type="radio" name="type" value="pot" <?= ($_POST['type'] ?? 'pot') === 'pot' ? 'checked' : '' ?>>
+                <label class="type-tab <?= $selectedType === 'pot' ? 'active' : '' ?>">
+                    <input type="radio" name="type" value="pot" <?= $selectedType === 'pot' ? 'checked' : '' ?>>
                     🏺 Original Pot
                 </label>
-                <label class="type-tab <?= ($_POST['type'] ?? '') === 'merch' ? 'active' : '' ?>">
-                    <input type="radio" name="type" value="merch" <?= ($_POST['type'] ?? '') === 'merch' ? 'checked' : '' ?>>
+                <label class="type-tab <?= $selectedType === 'merch' ? 'active' : '' ?>">
+                    <input type="radio" name="type" value="merch" <?= $selectedType === 'merch' ? 'checked' : '' ?>>
                     👕 Merch (Print-on-Demand)
                 </label>
             </div>
@@ -78,19 +101,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-grid">
                 <div class="form-group form-group--full">
                     <label>Product Name *</label>
-                    <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>"
+                    <input type="text" name="name" required value="<?= e($formData['name'] ?? '') ?>"
                            placeholder="e.g. Hand-thrown Celadon Bowl">
                 </div>
                 <div class="form-group form-group--full">
                     <label>Description</label>
-                    <textarea name="description" rows="3"><?= e($_POST['description'] ?? '') ?></textarea>
+                    <textarea name="description" rows="3"><?= e($formData['description'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group">
                     <label>Category</label>
                     <select name="category_id">
                         <option value="">— None —</option>
                         <?php foreach ($categories as $cat): ?>
-                        <option value="<?= $cat['id'] ?>" <?= ($_POST['category_id'] ?? '') == $cat['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $cat['id'] ?>" <?= (string)($formData['category_id'] ?? '') === (string)$cat['id'] ? 'selected' : '' ?>>
                             <?= e($cat['name']) ?> (<?= e($cat['type']) ?>)
                         </option>
                         <?php endforeach; ?>
@@ -99,29 +122,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label>Price ($)</label>
                     <input type="number" name="price" step="0.01" min="0"
-                           value="<?= e($_POST['price'] ?? '') ?>" placeholder="0.00">
+                           value="<?= e($formData['price'] ?? '') ?>" placeholder="0.00">
                 </div>
                 <div class="form-group">
                     <label>Status</label>
                     <select name="status">
-                        <option value="available" <?= ($_POST['status'] ?? 'available') === 'available' ? 'selected' : '' ?>>Available</option>
-                        <option value="sold" <?= ($_POST['status'] ?? '') === 'sold' ? 'selected' : '' ?>>Sold</option>
-                        <option value="coming_soon" <?= ($_POST['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
+                        <option value="available" <?= ($formData['status'] ?? 'available') === 'available' ? 'selected' : '' ?>>Available</option>
+                        <option value="sold" <?= ($formData['status'] ?? '') === 'sold' ? 'selected' : '' ?>>Sold</option>
+                        <option value="coming_soon" <?= ($formData['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
                     </select>
                 </div>
 
                 <!-- Pot-only fields -->
                 <div class="form-group pot-only">
                     <label>Dimensions</label>
-                    <input type="text" name="dimensions" value="<?= e($_POST['dimensions'] ?? '') ?>" placeholder="e.g. 12cm H">
+                    <input type="text" name="dimensions" value="<?= e($formData['dimensions'] ?? '') ?>" placeholder="e.g. 12cm H">
                 </div>
                 <div class="form-group pot-only">
                     <label>Technique</label>
-                    <input type="text" name="technique" value="<?= e($_POST['technique'] ?? '') ?>">
+                    <input type="text" name="technique" value="<?= e($formData['technique'] ?? '') ?>">
                 </div>
                 <div class="form-group pot-only">
                     <label>Quantity Available</label>
-                    <input type="number" name="quantity" value="<?= e($_POST['quantity'] ?? '1') ?>" min="0">
+                    <input type="number" name="quantity" value="<?= e($formData['quantity'] ?? '1') ?>" min="0">
                 </div>
 
                 <!-- Merch-only fields -->
@@ -129,9 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Print-on-Demand Provider</label>
                     <select name="pod_provider">
                         <option value="">— Select —</option>
-                        <option value="printful"  <?= ($_POST['pod_provider'] ?? '') === 'printful'  ? 'selected' : '' ?> selected>Printful ✓ (your provider)</option>
-                        <option value="printify"  <?= ($_POST['pod_provider'] ?? '') === 'printify'  ? 'selected' : '' ?>>Printify</option>
-                        <option value="other"     <?= ($_POST['pod_provider'] ?? '') === 'other'     ? 'selected' : '' ?>>Other</option>
+                        <option value="printful" <?= ($formData['pod_provider'] ?? '') === 'printful' ? 'selected' : '' ?>>Printful ✓ (your provider)</option>
+                        <option value="printify" <?= ($formData['pod_provider'] ?? '') === 'printify' ? 'selected' : '' ?>>Printify</option>
+                        <option value="other" <?= ($formData['pod_provider'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
                     </select>
                 </div>
                 <div class="form-group merch-only form-group--full">
@@ -141,33 +164,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="form-group merch-only form-group--full">
                     <label>Printful Product URL *</label>
-                    <input type="url" name="pod_product_url" value="<?= e($_POST['pod_product_url'] ?? '') ?>"
+                    <input type="url" name="pod_product_url" value="<?= e($formData['pod_product_url'] ?? '') ?>"
                            placeholder="https://your-store.printful.me/products/...">
                 </div>
                 <div class="form-group merch-only">
                     <label>Product ID (optional)</label>
-                    <input type="text" name="pod_product_id" value="<?= e($_POST['pod_product_id'] ?? '') ?>">
+                    <input type="text" name="pod_product_id" value="<?= e($formData['pod_product_id'] ?? '') ?>">
                 </div>
 
                 <!-- Both -->
                 <div class="form-group form-group--full">
                     <label>External Link (override buy button URL)</label>
-                    <input type="url" name="external_url" value="<?= e($_POST['external_url'] ?? '') ?>"
+                    <input type="url" name="external_url" value="<?= e($formData['external_url'] ?? '') ?>"
                            placeholder="Alternative URL if not using POD provider link">
                 </div>
 
                 <div class="form-group form-group--full">
-                    <label>Product Image</label>
+                    <label>Product Image<?= $isEdit ? ' (leave empty to keep current image)' : '' ?></label>
                     <input type="file" name="image" accept="image/*">
+                    <?php if (!empty($currentImagePath)): ?>
+                    <div style="margin-top:.75rem;">
+                        <img src="/uploads/<?= e($currentImagePath) ?>" alt="Current product image" class="admin-table__thumb">
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="form-group">
                     <label>Sort Order</label>
-                    <input type="number" name="sort_order" value="<?= e($_POST['sort_order'] ?? '0') ?>">
+                    <input type="number" name="sort_order" value="<?= e($formData['sort_order'] ?? '0') ?>">
                 </div>
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="admin-btn admin-btn--primary">Add Product</button>
+                <button type="submit" class="admin-btn admin-btn--primary"><?= $isEdit ? 'Save Changes' : 'Add Product' ?></button>
                 <a href="/admin/shop/index.php" class="admin-btn">Cancel</a>
             </div>
         </form>

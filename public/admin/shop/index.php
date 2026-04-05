@@ -67,7 +67,7 @@ $products = Database::fetchAll(
                             </span>
                         </td>
                         <td class="actions-cell">
-                            <a href="/admin/shop/edit-product.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
+                            <a href="/admin/shop/add-product.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
                             <a href="/admin/shop/delete-product.php?id=<?= $p['id'] ?>"
                                class="admin-btn admin-btn--sm admin-btn--danger"
                                onclick="return confirm('Delete this product?')">Delete</a>

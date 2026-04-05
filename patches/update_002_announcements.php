@@ -10,6 +10,17 @@ define('UPDATE_TOKEN', 'update2024');
 $token = $_GET['token'] ?? '';
 $run   = isset($_POST['run']) && $token === UPDATE_TOKEN;
 
+define('ROOT_PATH', dirname(__DIR__));
+
+if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
+    require_once ROOT_PATH . '/vendor/autoload.php';
+}
+
+if (class_exists('Dotenv\\Dotenv') && file_exists(ROOT_PATH . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
+    $dotenv->safeLoad();
+}
+
 require_once __DIR__ . '/../config/config.php';
 
 $results  = [];

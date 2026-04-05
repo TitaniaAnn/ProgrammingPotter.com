@@ -105,6 +105,30 @@ function eventTypeClass(string $type): string {
 <section class="hero" <?= $heroImage ? 'style="background-image: url(\'/uploads/' . e($heroImage) . '\');"' : '' ?>>
     <div class="hero__bg-overlay"></div>
 
+    <?php if (!empty($announcements)): ?>
+    <div class="hero-ticker" role="region" aria-label="Latest announcements">
+        <div class="hero-ticker__track">
+            <?php for ($loop = 0; $loop < 2; $loop++): ?>
+                <?php foreach ($announcements as $ann): ?>
+                    <?php
+                        $tickerText = trim((string)($ann['description'] ?? $ann['content'] ?? ''));
+                        if ($tickerText === '') {
+                            $tickerText = $ann['title'];
+                        }
+                        if (strlen($tickerText) > 90) {
+                            $tickerText = substr($tickerText, 0, 90) . '...';
+                        }
+                    ?>
+                    <a class="hero-ticker__item" href="/announcement.php?id=<?= (int)$ann['id'] ?>" aria-label="Open announcement: <?= e($ann['title']) ?>">
+                        <strong><?= e($ann['title']) ?></strong>
+                        <span><?= e($tickerText) ?></span>
+                    </a>
+                <?php endforeach; ?>
+            <?php endfor; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Folk art corner flourishes -->
     <div class="hero__corner hero__corner--tl">
         <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -212,6 +236,7 @@ function eventTypeClass(string $type): string {
         <div class="grid grid--3">
             <?php foreach ($announcements as $ann): ?>
             <article class="announcement-card">
+                <a class="announcement-card__stretched-link" href="/announcement.php?id=<?= (int)$ann['id'] ?>" aria-label="Open announcement: <?= e($ann['title']) ?>"></a>
                 <?php if (!empty($ann['image_thumb']) || !empty($ann['image_path'])): ?>
                 <div class="announcement-card__img-wrap">
                     <img

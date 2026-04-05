@@ -224,11 +224,12 @@ function eventTypeClass(string $type): string {
                 
                 <div class="announcement-card__content">
                     <h3 class="announcement-card__title"><?= e($ann['title']) ?></h3>
-                    
-                    <?php if (!empty($ann['description'])): ?>
+
+                    <?php $announcementText = trim((string)($ann['description'] ?? $ann['content'] ?? '')); ?>
+                    <?php if ($announcementText !== ''): ?>
                     <p class="announcement-card__desc">
                         <?php 
-                            $desc = $ann['description'];
+                            $desc = $announcementText;
                             if (strlen($desc) > 150) {
                                 $desc = substr($desc, 0, 150) . '...';
                             }

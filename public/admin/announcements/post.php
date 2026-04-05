@@ -31,10 +31,11 @@ if (empty($announcement['image_path']) || !file_exists($announcement['image_path
 
 // Build caption from announcement + linked entities
 $caption = $announcement['title'];
-if (!empty($announcement['description'])) {
+$announcementBody = trim((string)($announcement['description'] ?? $announcement['content'] ?? ''));
+if ($announcementBody !== '') {
     // Include brief description if present
-    $desc = substr($announcement['description'], 0, 100);
-    if (strlen($announcement['description']) > 100) {
+    $desc = substr($announcementBody, 0, 100);
+    if (strlen($announcementBody) > 100) {
         $desc .= '...';
     }
     $caption .= "\n\n" . $desc;

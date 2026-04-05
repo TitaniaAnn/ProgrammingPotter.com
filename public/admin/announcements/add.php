@@ -18,10 +18,11 @@ try {
     }
 
     $repairSql = [
-        'publish_date' => "ALTER TABLE announcements ADD COLUMN publish_date DATETIME NOT NULL AFTER description",
+        'publish_date' => "ALTER TABLE announcements ADD COLUMN publish_date DATETIME NOT NULL AFTER title",
         'image_path' => "ALTER TABLE announcements ADD COLUMN image_path TEXT AFTER publish_date",
         'image_thumb' => "ALTER TABLE announcements ADD COLUMN image_thumb TEXT AFTER image_path",
         'description' => "ALTER TABLE announcements ADD COLUMN description TEXT AFTER title",
+        'content' => "ALTER TABLE announcements ADD COLUMN content TEXT NULL AFTER description",
         'created_by' => "ALTER TABLE announcements ADD COLUMN created_by INT NULL AFTER image_thumb",
     ];
 
@@ -84,6 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($announcementColumns['description'])) {
             $data['description'] = $description;
+        }
+        if (!empty($announcementColumns['content'])) {
+            $data['content'] = $description;
         }
 
         if (!empty($announcementColumns['created_by'])) {
@@ -277,7 +281,7 @@ foreach ($linkedEntities as $link) {
                 <!-- Description -->
                 <div class="form-group form-group--full">
                     <label>Description</label>
-                    <textarea name="description" rows="3" placeholder="Describe the announcement..."><?= e($_POST['description'] ?? ($announcement['description'] ?? '')) ?></textarea>
+                    <textarea name="description" rows="3" placeholder="Describe the announcement..."><?= e($_POST['description'] ?? ($announcement['description'] ?? ($announcement['content'] ?? ''))) ?></textarea>
                 </div>
 
                 <!-- Publish Date -->

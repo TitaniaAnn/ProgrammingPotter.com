@@ -250,6 +250,7 @@ body { padding-top: 68px; }
     right: 0;
     z-index: 3;
     overflow: hidden;
+    height: 42px;
     border-top: 1px solid rgba(255, 255, 255, .18);
     border-bottom: 1px solid rgba(255, 255, 255, .18);
     background: rgba(28, 33, 44, .62);
@@ -257,21 +258,12 @@ body { padding-top: 68px; }
     -webkit-backdrop-filter: blur(6px);
 }
 
-.hero-ticker__track {
-    display: inline-flex;
-    align-items: center;
-    gap: 1.4rem;
-    min-width: 200%;
-    padding: .55rem 1.25rem;
-    animation: ticker-scroll 42s linear infinite;
-}
-
-.hero-ticker:hover .hero-ticker__track {
-    animation-play-state: paused;
-}
-
 .hero-ticker__item {
-    display: inline-flex;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateX(100%);
+    display: flex;
     align-items: center;
     gap: .45rem;
     white-space: nowrap;
@@ -295,11 +287,6 @@ body { padding-top: 68px; }
     content: "|";
     color: rgba(255, 255, 255, .35);
     margin-left: .9rem;
-}
-
-@keyframes ticker-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
 }
 
 /* ============================================================
@@ -879,7 +866,7 @@ body.lightbox-open .masonry-item__overlay { opacity: 0 !important; }
     .nav__burger { display: flex; }
     .grid--3 { grid-template-columns: repeat(2, 1fr); }
     .hero__title { font-size: clamp(2rem, 8vw, 3rem); }
-    .hero-ticker__track { animation-duration: 34s; padding: .5rem .9rem; }
+    .hero-ticker { height: 38px; }
     .hero-ticker__item { font-size: .76rem; }
     .about-strip__inner { flex-direction: column; }
     .about-strip__decoration { width: 100%; max-width: 320px; margin: 0 auto; }

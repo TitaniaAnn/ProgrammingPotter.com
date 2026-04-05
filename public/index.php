@@ -61,6 +61,23 @@ $announcements = Database::fetchAll(
      LIMIT 5"
 );
 
+$tickerItems = [];
+foreach ($announcements as $ann) {
+    $tickerText = trim((string)($ann['description'] ?? $ann['content'] ?? ''));
+    if ($tickerText === '') {
+        $tickerText = $ann['title'];
+    }
+    if (strlen($tickerText) > 90) {
+        $tickerText = substr($tickerText, 0, 90) . '...';
+    }
+
+    $tickerItems[] = [
+        'id' => (int)$ann['id'],
+        'title' => $ann['title'],
+        'text' => $tickerText,
+    ];
+}
+
 function eventTypeLabel(string $type): string {
         $labels = [
                 'pottery_show' => 'Pottery Show',
@@ -105,27 +122,13 @@ function eventTypeClass(string $type): string {
 <section class="hero" <?= $heroImage ? 'style="background-image: url(\'/uploads/' . e($heroImage) . '\');"' : '' ?>>
     <div class="hero__bg-overlay"></div>
 
-    <?php if (!empty($announcements)): ?>
-    <div class="hero-ticker" role="region" aria-label="Latest announcements">
-        <div class="hero-ticker__track">
-            <?php for ($loop = 0; $loop < 2; $loop++): ?>
-                <?php foreach ($announcements as $ann): ?>
-                    <?php
-                        $tickerText = trim((string)($ann['description'] ?? $ann['content'] ?? ''));
-                        if ($tickerText === '') {
-                            $tickerText = $ann['title'];
-                        }
-                        if (strlen($tickerText) > 90) {
-                            $tickerText = substr($tickerText, 0, 90) . '...';
-                        }
-                    ?>
-                    <a class="hero-ticker__item" href="/announcement.php?id=<?= (int)$ann['id'] ?>" aria-label="Open announcement: <?= e($ann['title']) ?>">
-                        <strong><?= e($ann['title']) ?></strong>
-                        <span><?= e($tickerText) ?></span>
-                    </a>
-                <?php endforeach; ?>
-            <?php endfor; ?>
-        </div>
+    <?php if (!empty($tickerItems)): ?>
+    <?php $firstTickerItem = $tickerItems[0]; ?>
+    <div class="hero-ticker" id="heroTicker" role="region" aria-label="Latest announcements" data-items="<?= e(json_encode($tickerItems, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)) ?>">
+        <a class="hero-ticker__item" id="heroTickerItem" href="/announcement.php?id=<?= (int)$firstTickerItem['id'] ?>" aria-label="Open announcement: <?= e($firstTickerItem['title']) ?>">
+            <strong><?= e($firstTickerItem['title']) ?></strong>
+            <span><?= e($firstTickerItem['text']) ?></span>
+        </a>
     </div>
     <?php endif; ?>
 
@@ -404,6 +407,58 @@ function eventTypeClass(string $type): string {
 </section>
 
 <?php include __DIR__ . '/../templates/footer.php'; ?>
+<script>
+(function() {
+    const ticker = document.getElementById('heroTicker');
+    const itemEl = document.getElementById('heroTickerItem');
+    if (!ticker || !itemEl) return;
+
+    let items = [];
+    try {
+        items = JSON.parse(ticker.dataset.items || '[]');
+    } catch (e) {
+        items = [];
+    }
+    if (!items.length) return;
+
+    let index = 0;
+    const speed = window.matchMedia('(max-width: 768px)').matches ? 110 : 135; // px/sec
+
+    function paintItem(entry) {
+        itemEl.href = '/announcement.php?id=' + encodeURIComponent(entry.id);
+        itemEl.setAttribute('aria-label', 'Open announcement: ' + entry.title);
+        itemEl.innerHTML = '<strong>' + entry.title.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong><span>' + entry.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+    }
+
+    function runCycle() {
+        const entry = items[index];
+        paintItem(entry);
+
+        const containerWidth = ticker.clientWidth;
+
+        itemEl.style.transition = 'none';
+        itemEl.style.transform = 'translateX(' + containerWidth + 'px)';
+
+        requestAnimationFrame(() => {
+            const itemWidth = itemEl.offsetWidth;
+            const travel = containerWidth + itemWidth + 40;
+            const duration = Math.max(6, travel / speed);
+
+            itemEl.style.transition = 'transform ' + duration + 's linear';
+            itemEl.style.transform = 'translateX(-' + (itemWidth + 40) + 'px)';
+        });
+
+        index = (index + 1) % items.length;
+    }
+
+    itemEl.addEventListener('transitionend', function(e) {
+        if (e.propertyName !== 'transform') return;
+        runCycle();
+    });
+
+    runCycle();
+})();
+</script>
 <script src="/js/main.js"></script>
 </body>
 </html>

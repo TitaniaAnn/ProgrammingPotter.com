@@ -44,6 +44,27 @@ $checks = [
         'fix_sql' => "ALTER TABLE announcements ADD COLUMN publish_date DATETIME NOT NULL AFTER description;",
     ],
     [
+        'type' => 'column',
+        'label' => 'announcements.image_path column exists',
+        'table' => 'announcements',
+        'column' => 'image_path',
+        'fix_sql' => "ALTER TABLE announcements ADD COLUMN image_path TEXT AFTER publish_date;",
+    ],
+    [
+        'type' => 'column',
+        'label' => 'announcements.image_thumb column exists',
+        'table' => 'announcements',
+        'column' => 'image_thumb',
+        'fix_sql' => "ALTER TABLE announcements ADD COLUMN image_thumb TEXT AFTER image_path;",
+    ],
+    [
+        'type' => 'column',
+        'label' => 'announcements.created_by column exists',
+        'table' => 'announcements',
+        'column' => 'created_by',
+        'fix_sql' => "ALTER TABLE announcements ADD COLUMN created_by INT NULL AFTER image_thumb;",
+    ],
+    [
         'type' => 'table',
         'label' => 'announcement_links table exists',
         'table' => 'announcement_links',

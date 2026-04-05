@@ -102,20 +102,29 @@ if ($run) {
 
         // Repair partial migration: add missing announcements.description if needed.
         try {
-            $checkCol = $pdo->query(
-                "SELECT COUNT(*) AS cnt
-                 FROM INFORMATION_SCHEMA.COLUMNS
-                 WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME = 'announcements'
-                   AND COLUMN_NAME = 'description'"
-            )->fetch(PDO::FETCH_ASSOC);
+            $repairColumns = [
+                'description' => "ALTER TABLE announcements ADD COLUMN description TEXT AFTER title",
+                'created_by' => "ALTER TABLE announcements ADD COLUMN created_by INT NULL AFTER image_thumb",
+            ];
 
-            if ((int)($checkCol['cnt'] ?? 0) === 0) {
-                $pdo->exec("ALTER TABLE announcements ADD COLUMN description TEXT AFTER title");
-                $results[] = ['ok' => true, 'label' => 'Repair announcements.description column', 'rows' => 0];
+            foreach ($repairColumns as $col => $sql) {
+                $checkCol = $pdo->prepare(
+                    "SELECT COUNT(*) AS cnt
+                     FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE()
+                       AND TABLE_NAME = 'announcements'
+                       AND COLUMN_NAME = ?"
+                );
+                $checkCol->execute([$col]);
+                $checkColRow = $checkCol->fetch(PDO::FETCH_ASSOC);
+
+                if ((int)($checkColRow['cnt'] ?? 0) === 0) {
+                    $pdo->exec($sql);
+                    $results[] = ['ok' => true, 'label' => 'Repair announcements.' . $col . ' column', 'rows' => 0];
+                }
             }
         } catch (PDOException $e) {
-            $results[] = ['ok' => false, 'label' => 'Repair announcements.description column', 'error' => $e->getMessage()];
+            $results[] = ['ok' => false, 'label' => 'Repair announcements columns', 'error' => $e->getMessage()];
             $hasError  = true;
         }
 

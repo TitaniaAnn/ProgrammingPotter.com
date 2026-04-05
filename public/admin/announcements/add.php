@@ -2,20 +2,49 @@
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
-// Self-heal for partial migrations: ensure required column exists.
+// Self-heal for partial migrations and detect available columns.
+$announcementColumns = [];
+$schemaMismatchErrors = [];
 try {
-    $descriptionCol = Database::fetchOne(
-        "SELECT COUNT(*) AS cnt
+    $columnRows = Database::fetchAll(
+        "SELECT COLUMN_NAME
          FROM INFORMATION_SCHEMA.COLUMNS
          WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'announcements'
-           AND COLUMN_NAME = 'description'"
+           AND TABLE_NAME = 'announcements'"
     );
-    if ((int)($descriptionCol['cnt'] ?? 0) === 0) {
-        Database::query("ALTER TABLE announcements ADD COLUMN description TEXT AFTER title");
+
+    foreach ($columnRows as $row) {
+        $announcementColumns[$row['COLUMN_NAME']] = true;
+    }
+
+    $repairSql = [
+        'publish_date' => "ALTER TABLE announcements ADD COLUMN publish_date DATETIME NOT NULL AFTER description",
+        'image_path' => "ALTER TABLE announcements ADD COLUMN image_path TEXT AFTER publish_date",
+        'image_thumb' => "ALTER TABLE announcements ADD COLUMN image_thumb TEXT AFTER image_path",
+        'description' => "ALTER TABLE announcements ADD COLUMN description TEXT AFTER title",
+        'created_by' => "ALTER TABLE announcements ADD COLUMN created_by INT NULL AFTER image_thumb",
+    ];
+
+    foreach ($repairSql as $col => $sql) {
+        if (empty($announcementColumns[$col])) {
+            try {
+                Database::query($sql);
+                $announcementColumns[$col] = true;
+            } catch (Exception $e) {
+                // Continue; we'll avoid writing to columns that still do not exist.
+            }
+        }
+    }
+
+    $requiredColumns = ['title', 'publish_date', 'image_path', 'image_thumb'];
+    foreach ($requiredColumns as $requiredCol) {
+        if (empty($announcementColumns[$requiredCol])) {
+            $schemaMismatchErrors[] = "Missing announcements." . $requiredCol . " column. Run update_002_announcements patch.";
+        }
     }
 } catch (Exception $e) {
-    // Keep page usable; the insert/update will surface any real DB issues.
+    // Keep page usable; dynamic field mapping below prevents bad inserts.
+    $schemaMismatchErrors[] = 'Could not verify announcements schema. Please run the schema health check.';
 }
 
 $isEdit = !empty($_GET['id']);
@@ -50,10 +79,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $data = [
             'title' => $title,
-            'description' => $description,
             'publish_date' => date('Y-m-d H:i:s', strtotime($publishDate)),
-            'created_by' => $_SESSION['admin_user_id'] ?? null,
         ];
+
+        if (!empty($announcementColumns['description'])) {
+            $data['description'] = $description;
+        }
+
+        if (!empty($announcementColumns['created_by'])) {
+            $data['created_by'] = $_SESSION['admin_id'] ?? (Auth::getUser()['id'] ?? null);
+        }
 
         // Handle image upload
         $imagePath = null;
@@ -111,8 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $data['image_path'] = $imagePath;
-        $data['image_thumb'] = $imageThumb;
+        if (!empty($announcementColumns['image_path'])) {
+            $data['image_path'] = $imagePath;
+        }
+        if (!empty($announcementColumns['image_thumb'])) {
+            $data['image_thumb'] = $imageThumb;
+        }
 
         // Insert or update announcement
         if ($isEdit) {
@@ -220,6 +259,9 @@ foreach ($linkedEntities as $link) {
             <h1><?= $isEdit ? 'Edit Announcement' : 'Add Announcement' ?></h1>
             <a href="/admin/announcements/index.php" class="admin-btn">← Back</a>
         </div>
+        <?php foreach ($schemaMismatchErrors as $schemaError): ?>
+            <div class="alert alert--error"><?= e($schemaError) ?></div>
+        <?php endforeach; ?>
         <?php if (!empty($error)): ?><div class="alert alert--error"><?= e($error) ?></div><?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="admin-form" id="announcementForm">

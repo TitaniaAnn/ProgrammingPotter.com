@@ -2,6 +2,22 @@
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
+// Self-heal for partial migrations: ensure required column exists.
+try {
+    $descriptionCol = Database::fetchOne(
+        "SELECT COUNT(*) AS cnt
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'announcements'
+           AND COLUMN_NAME = 'description'"
+    );
+    if ((int)($descriptionCol['cnt'] ?? 0) === 0) {
+        Database::query("ALTER TABLE announcements ADD COLUMN description TEXT AFTER title");
+    }
+} catch (Exception $e) {
+    // Keep page usable; the insert/update will surface any real DB issues.
+}
+
 $isEdit = !empty($_GET['id']);
 $announcementId = $isEdit ? (int)$_GET['id'] : null;
 $announcement = null;

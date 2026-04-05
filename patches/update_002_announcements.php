@@ -100,6 +100,25 @@ if ($run) {
             }
         }
 
+        // Repair partial migration: add missing announcements.description if needed.
+        try {
+            $checkCol = $pdo->query(
+                "SELECT COUNT(*) AS cnt
+                 FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'announcements'
+                   AND COLUMN_NAME = 'description'"
+            )->fetch(PDO::FETCH_ASSOC);
+
+            if ((int)($checkCol['cnt'] ?? 0) === 0) {
+                $pdo->exec("ALTER TABLE announcements ADD COLUMN description TEXT AFTER title");
+                $results[] = ['ok' => true, 'label' => 'Repair announcements.description column', 'rows' => 0];
+            }
+        } catch (PDOException $e) {
+            $results[] = ['ok' => false, 'label' => 'Repair announcements.description column', 'error' => $e->getMessage()];
+            $hasError  = true;
+        }
+
     } catch (PDOException $e) {
         $hasError  = true;
         $results[] = ['ok' => false, 'label' => 'Database connection', 'error' => $e->getMessage()];

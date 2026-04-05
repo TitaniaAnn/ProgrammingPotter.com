@@ -73,6 +73,7 @@ foreach ($rows as $row) { $s[$row['setting_key']] = $row['setting_value']; }
     <div class="admin-content">
         <div class="admin-page-header">
             <h1>Site Settings</h1>
+            <a href="/admin/settings/schema-health.php" class="admin-btn">Schema Health</a>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="admin-form">

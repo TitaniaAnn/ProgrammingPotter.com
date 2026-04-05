@@ -52,6 +52,15 @@ $events = Database::fetchAll(
          LIMIT 3"
 );
 
+// Fetch published announcements (ordered by publish_date DESC, limit 5)
+$announcements = Database::fetchAll(
+    "SELECT *
+     FROM announcements
+     WHERE publish_date <= NOW()
+     ORDER BY publish_date DESC, created_at DESC
+     LIMIT 5"
+);
+
 function eventTypeLabel(string $type): string {
         $labels = [
                 'pottery_show' => 'Pottery Show',
@@ -61,6 +70,17 @@ function eventTypeLabel(string $type): string {
         ];
 
         return $labels[$type] ?? 'Event';
+}
+
+function eventTypeClass(string $type): string {
+    $classes = [
+        'pottery_show' => 'pottery-show',
+        'pottery_sale' => 'pottery-sale',
+        'storefront_sale' => 'storefront-sale',
+        'class' => 'class',
+    ];
+
+    return $classes[$type] ?? 'event';
 }
 ?>
 <!DOCTYPE html>
@@ -182,11 +202,79 @@ function eventTypeLabel(string $type): string {
 </section>
 <?php endif; ?>
 
+<!-- ANNOUNCEMENTS -->
+<?php if (!empty($announcements)): ?>
+<section class="section announcements">
+    <div class="container">
+        <div class="section__header">
+            <h2 class="section__title">Announcements</h2>
+        </div>
+        <div class="grid grid--3">
+            <?php foreach ($announcements as $ann): ?>
+            <article class="announcement-card">
+                <?php if (!empty($ann['image_thumb']) || !empty($ann['image_path'])): ?>
+                <div class="announcement-card__img-wrap">
+                    <img
+                        src="<?= e(UPLOAD_URL . ($ann['image_thumb'] ?? $ann['image_path'])) ?>"
+                        alt="<?= e($ann['title']) ?>"
+                        loading="lazy"
+                    >
+                </div>
+                <?php endif; ?>
+                
+                <div class="announcement-card__content">
+                    <h3 class="announcement-card__title"><?= e($ann['title']) ?></h3>
+                    
+                    <?php if (!empty($ann['description'])): ?>
+                    <p class="announcement-card__desc">
+                        <?php 
+                            $desc = $ann['description'];
+                            if (strlen($desc) > 150) {
+                                $desc = substr($desc, 0, 150) . '...';
+                            }
+                            echo e($desc); 
+                        ?>
+                    </p>
+                    <?php endif; ?>
+                    
+                    <?php 
+                        // Get linked entities
+                        $links = Database::fetchAll(
+                            "SELECT entity_type, entity_id FROM announcement_links WHERE announcement_id = ? ORDER BY sort_order ASC LIMIT 3",
+                            [$ann['id']]
+                        );
+                    ?>
+                    <?php if (!empty($links)): ?>
+                    <div class="announcement-card__links">
+                        <?php foreach ($links as $link): ?>
+                            <?php if ($link['entity_type'] === 'event'): ?>
+                                <?php $event = Database::fetchOne("SELECT id, name, url FROM events WHERE id = ?", [$link['entity_id']]); ?>
+                                <?php if ($event): ?>
+                                <a href="<?= e($event['url'] ?? '/events.php#event-' . $event['id']) ?>" class="announcement-card__link-tag">📅 <?= e($event['name']) ?></a>
+                                <?php endif; ?>
+                            <?php elseif ($link['entity_type'] === 'pottery'): ?>
+                                <?php $pottery = Database::fetchOne("SELECT id, title FROM pottery WHERE id = ?", [$link['entity_id']]); ?>
+                                <?php if ($pottery): ?>
+                                <a href="/portfolio.php#piece-<?= $pottery['id'] ?>" class="announcement-card__link-tag">🏺 <?= e($pottery['title']) ?></a>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </article>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- EVENTS PREVIEW -->
 <section class="section events-preview">
     <div class="container">
         <div class="section__header">
             <h2 class="section__title">Events</h2>
+            <a href="/events.php" class="section__link">View all events →</a>
         </div>
 
         <?php if (empty($events)): ?>
@@ -195,7 +283,7 @@ function eventTypeLabel(string $type): string {
         <div class="grid grid--3">
             <?php foreach ($events as $event): ?>
             <article class="event-card">
-                <div class="event-card__type"><?= e(eventTypeLabel($event['event_type'])) ?></div>
+                <div class="event-card__type event-card__type--<?= e(eventTypeClass($event['event_type'])) ?>"><?= e(eventTypeLabel($event['event_type'])) ?></div>
                 <h3 class="event-card__title"><?= e($event['name']) ?></h3>
 
                 <?php if (!empty($event['location'])): ?>

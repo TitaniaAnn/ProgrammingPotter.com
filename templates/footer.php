@@ -9,6 +9,7 @@ $footerLinks = Database::fetchAll("SELECT * FROM social_links WHERE active = 1 O
         </div>
         <div class="footer__nav">
             <a href="/portfolio.php">Portfolio</a>
+            <a href="/events.php">Events</a>
             <a href="/shop.php">Shop</a>
             <a href="/about.php">About</a>
         </div>

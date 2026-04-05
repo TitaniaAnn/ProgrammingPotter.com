@@ -33,6 +33,17 @@ define('STRIPE_WEBHOOK_SECRET',  'whsec_YOUR_WEBHOOK_SECRET');
 // Stripe will install via: composer require stripe/stripe-php
 // OR drop stripe-php into /includes/stripe-php/ (manual install)
 
+// Social Media Integration — for posting announcements
+// Instagram Graph API — get from Meta Business Manager
+// https://developers.facebook.com/docs/instagram-graph-api
+define('INSTAGRAM_BUSINESS_ACCOUNT_ID', $_ENV['INSTAGRAM_BUSINESS_ACCOUNT_ID'] ?? '');
+define('INSTAGRAM_ACCESS_TOKEN',        $_ENV['INSTAGRAM_ACCESS_TOKEN'] ?? '');
+
+// TikTok Content Posting API — get from TikTok Developer Platform
+// https://developers.tiktok.com/doc/content-posting-api
+define('TIKTOK_BUSINESS_ACCOUNT_ID', $_ENV['TIKTOK_BUSINESS_ACCOUNT_ID'] ?? '');
+define('TIKTOK_ACCESS_TOKEN',        $_ENV['TIKTOK_ACCESS_TOKEN'] ?? '');
+
 define('SHOP_CURRENCY', 'usd');  // lowercase for Stripe API
 define('SESSION_NAME', 'pottery_session');
 define('SESSION_LIFETIME', 86400 * 7); // 7 days

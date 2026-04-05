@@ -6,6 +6,7 @@
         <ul class="nav__links">
             <li><a href="/" class="nav__link">Home</a></li>
             <li><a href="/portfolio.php" class="nav__link">Portfolio</a></li>
+            <li><a href="/events.php" class="nav__link">Events</a></li>
             <li><a href="/shop.php" class="nav__link">Shop</a></li>
             <li><a href="/about.php" class="nav__link">About</a></li>
             <li><a href="/templates.php" class="nav__link">Templates</a></li>
@@ -19,6 +20,7 @@
     <div class="nav__mobile" id="mobileMenu">
         <a href="/" class="nav__mobile-link">Home</a>
         <a href="/portfolio.php" class="nav__mobile-link">Portfolio</a>
+        <a href="/events.php" class="nav__mobile-link">Events</a>
         <a href="/shop.php" class="nav__mobile-link">Shop</a>
         <a href="/about.php" class="nav__mobile-link">About</a>
         <a href="/templates.php" class="nav__mobile-link">Templates</a>

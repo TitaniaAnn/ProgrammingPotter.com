@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS products (
     price DECIMAL(10,2),
     type ENUM('pot', 'merch') NOT NULL DEFAULT 'pot',
     status ENUM('available', 'sold', 'coming_soon') DEFAULT 'available',
+    is_visible TINYINT(1) NOT NULL DEFAULT 1,
     image_path TEXT,
     -- For pots
     dimensions VARCHAR(255),
@@ -128,6 +129,18 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES shop_categories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    image_path TEXT NOT NULL,
+    image_thumb TEXT NULL,
+    sort_order INT DEFAULT 0,
+    is_primary TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_product_sort (product_id, sort_order),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 -- Social media links

@@ -2,6 +2,30 @@
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
+$hasVisibilityColumn = false;
+try {
+    $visibilityColumn = Database::fetchOne(
+        "SELECT COLUMN_NAME
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'products'
+           AND COLUMN_NAME = 'is_visible'
+         LIMIT 1"
+    );
+    $hasVisibilityColumn = !empty($visibilityColumn);
+
+    if (!$hasVisibilityColumn) {
+        try {
+            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
+            $hasVisibilityColumn = true;
+        } catch (Exception $e) {
+            // Keep listing usable if schema auto-repair fails.
+        }
+    }
+} catch (Exception $e) {
+    // Keep listing usable without visibility controls.
+}
+
 $products = Database::fetchAll(
     "SELECT p.*, c.name as category_name
      FROM products p
@@ -44,6 +68,9 @@ $products = Database::fetchAll(
                         <th>Category</th>
                         <th>Price</th>
                         <th>Status</th>
+                        <?php if ($hasVisibilityColumn): ?>
+                        <th>Visible</th>
+                        <?php endif; ?>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -66,8 +93,18 @@ $products = Database::fetchAll(
                                 <?= e($p['status']) ?>
                             </span>
                         </td>
+                        <?php if ($hasVisibilityColumn): ?>
+                        <td><?= !empty($p['is_visible']) ? 'Yes' : 'No' ?></td>
+                        <?php endif; ?>
                         <td class="actions-cell">
                             <a href="/admin/shop/add-product.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
+                            <?php if ($hasVisibilityColumn): ?>
+                            <a href="/admin/shop/toggle-visibility.php?id=<?= $p['id'] ?>"
+                               class="admin-btn admin-btn--sm"
+                               onclick="return confirm('<?= !empty($p['is_visible']) ? 'Hide' : 'Show' ?> this product in the public shop?')">
+                                <?= !empty($p['is_visible']) ? 'Hide' : 'Show' ?>
+                            </a>
+                            <?php endif; ?>
                             <a href="/admin/shop/delete-product.php?id=<?= $p['id'] ?>"
                                class="admin-btn admin-btn--sm admin-btn--danger"
                                onclick="return confirm('Delete this product?')">Delete</a>

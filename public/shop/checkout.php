@@ -11,8 +11,34 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $productId = (int)($_POST['product_id'] ?? 0);
 $quantity  = max(1, (int)($_POST['quantity'] ?? 1));
 
+$hasVisibilityColumn = false;
+try {
+    $visibilityColumn = Database::fetchOne(
+        "SELECT COLUMN_NAME
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'products'
+           AND COLUMN_NAME = 'is_visible'
+         LIMIT 1"
+    );
+    $hasVisibilityColumn = !empty($visibilityColumn);
+
+    if (!$hasVisibilityColumn) {
+        try {
+            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
+            $hasVisibilityColumn = true;
+        } catch (Exception $e) {
+            // Keep checkout usable if schema auto-repair fails.
+        }
+    }
+} catch (Exception $e) {
+    // Keep checkout usable without visibility filter.
+}
+
+$visibilitySql = $hasVisibilityColumn ? " AND is_visible = 1" : "";
+
 $product = Database::fetchOne(
-    "SELECT * FROM products WHERE id = ? AND type = 'pot' AND status = 'available'",
+    "SELECT * FROM products WHERE id = ? AND type = 'pot' AND status = 'available'" . $visibilitySql,
     [$productId]
 );
 

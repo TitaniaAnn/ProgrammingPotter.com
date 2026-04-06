@@ -4,8 +4,36 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 $type = $_GET['type'] ?? '';
 $categorySlug = $_GET['category'] ?? '';
 
+$hasVisibilityColumn = false;
+try {
+    $visibilityColumn = Database::fetchOne(
+        "SELECT COLUMN_NAME
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'products'
+           AND COLUMN_NAME = 'is_visible'
+         LIMIT 1"
+    );
+    $hasVisibilityColumn = !empty($visibilityColumn);
+
+    if (!$hasVisibilityColumn) {
+        try {
+            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
+            $hasVisibilityColumn = true;
+        } catch (Exception $e) {
+            // Keep storefront usable if schema auto-repair fails.
+        }
+    }
+} catch (Exception $e) {
+    // Keep storefront usable without visibility filter.
+}
+
 $params = [];
 $whereClauses = [];
+
+if ($hasVisibilityColumn) {
+    $whereClauses[] = 'p.is_visible = 1';
+}
 
 if ($type === 'pot' || $type === 'merch') {
     $whereClauses[] = 'p.type = ?';

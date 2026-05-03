@@ -71,6 +71,7 @@ if (!$order) { flash('error', 'Order not found.'); redirect(SITE_URL . '/admin/o
                 <div class="admin-card">
                     <h2>Mark as Shipped</h2>
                     <form method="POST" action="/admin/orders/ship.php" class="admin-form">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="id" value="<?= $order['id'] ?>">
                         <div class="form-group">
                             <label>Carrier</label>

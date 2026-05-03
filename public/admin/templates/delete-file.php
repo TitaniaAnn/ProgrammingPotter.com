@@ -1,11 +1,12 @@
 <?php
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
+csrf_verify();
 
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['ok' => false, 'error' => 'Method not allowed.']);
+    echo json_encode(['success' => false, 'error' => 'Method not allowed.']);
     exit;
 }
 
@@ -18,7 +19,7 @@ $file = Database::fetchOne(
 );
 
 if (!$file) {
-    echo json_encode(['ok' => false, 'error' => 'File not found.']);
+    echo json_encode(['success' => false, 'error' => 'File not found.']);
     exit;
 }
 
@@ -29,4 +30,4 @@ if (file_exists($filePath)) {
 
 Database::delete('pottery_template_files', 'id = ?', [$fileId]);
 
-echo json_encode(['ok' => true]);
+echo json_encode(['success' => true]);

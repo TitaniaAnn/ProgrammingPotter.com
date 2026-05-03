@@ -1,6 +1,23 @@
 <?php
 require_once __DIR__ . '/../../includes/bootstrap.php';
+require_once __DIR__ . '/../../includes/AnnouncementSocialMedia.php';
 Auth::requireLogin();
+
+$igExpiry = AnnouncementSocialMedia::getInstagramTokenExpiry();
+$igToken  = AnnouncementSocialMedia::getInstagramAccessToken();
+$igWarning = null;
+if (!empty($igToken)) {
+    if ($igExpiry === null) {
+        $igWarning = 'Instagram token expiry is unknown — visit Social Tokens to refresh and capture the next expiry.';
+    } else {
+        $now = new DateTimeImmutable();
+        if ($igExpiry < $now) {
+            $igWarning = 'Instagram token expired on ' . $igExpiry->format('Y-m-d') . '. Posts will fail until you generate a new token.';
+        } elseif ($igExpiry->diff($now)->days <= 7) {
+            $igWarning = 'Instagram token expires on ' . $igExpiry->format('Y-m-d') . ' — refresh it from Social Tokens.';
+        }
+    }
+}
 
 $stats = [
     'pottery'   => Database::fetchOne("SELECT COUNT(*) as n FROM pottery")['n'] ?? 0,
@@ -34,6 +51,13 @@ $user = Auth::getUser();
             <h1>Dashboard</h1>
             <p>Welcome back, <?= e($user['name'] ?? 'Admin') ?>!</p>
         </div>
+
+        <?php if ($igWarning): ?>
+        <div class="alert alert--error">
+            <?= e($igWarning) ?>
+            <a href="/admin/social/tokens.php" style="margin-left:.5rem;">Open Social Tokens →</a>
+        </div>
+        <?php endif; ?>
 
         <!-- Stats -->
         <div class="stats-grid">
@@ -122,7 +146,7 @@ $user = Auth::getUser();
                             <td><?= date('d M Y', strtotime($p['created_at'])) ?></td>
                             <td>
                                 <a href="/admin/pottery/edit.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
-                                <a href="/admin/pottery/delete.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm admin-btn--danger"
+                                <a href="/admin/pottery/delete.php?id=<?= $p['id'] ?>&csrf=<?= e(csrf_token()) ?>" class="admin-btn admin-btn--sm admin-btn--danger"
                                    onclick="return confirm('Delete this piece?')">Delete</a>
                             </td>
                         </tr>

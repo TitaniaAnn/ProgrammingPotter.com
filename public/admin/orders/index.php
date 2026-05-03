@@ -94,7 +94,7 @@ $countMap = array_column($counts, 'n', 'status');
                         <td>
                             <a href="/admin/orders/view.php?id=<?= $o['id'] ?>" class="admin-btn admin-btn--sm">View</a>
                             <?php if ($o['status'] === 'paid'): ?>
-                            <a href="/admin/orders/ship.php?id=<?= $o['id'] ?>" class="admin-btn admin-btn--sm admin-btn--primary">Mark Shipped</a>
+                            <a href="/admin/orders/ship.php?id=<?= $o['id'] ?>&csrf=<?= e(csrf_token()) ?>" class="admin-btn admin-btn--sm admin-btn--primary">Mark Shipped</a>
                             <?php endif; ?>
                         </td>
                     </tr>

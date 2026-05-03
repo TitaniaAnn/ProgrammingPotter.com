@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
+csrf_verify();
 
 $id = (int)($_GET['id'] ?? 0);
 $template = Database::fetchOne("SELECT * FROM pottery_templates WHERE id = ?", [$id]);

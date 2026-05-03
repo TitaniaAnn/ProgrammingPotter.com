@@ -60,7 +60,7 @@ $pieces = Database::fetchAll(
                         <td><?= date('d M Y', strtotime($p['created_at'])) ?></td>
                         <td class="actions-cell">
                             <a href="/admin/pottery/edit.php?id=<?= $p['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
-                            <a href="/admin/pottery/delete.php?id=<?= $p['id'] ?>"
+                            <a href="/admin/pottery/delete.php?id=<?= $p['id'] ?>&csrf=<?= e(csrf_token()) ?>"
                                class="admin-btn admin-btn--sm admin-btn--danger"
                                onclick="return confirm('Delete \'<?= e(addslashes($p['title'])) ?>\'? This cannot be undone.')">
                                 Delete

@@ -4,36 +4,8 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 $type = $_GET['type'] ?? '';
 $categorySlug = $_GET['category'] ?? '';
 
-$hasVisibilityColumn = false;
-try {
-    $visibilityColumn = Database::fetchOne(
-        "SELECT COLUMN_NAME
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'products'
-           AND COLUMN_NAME = 'is_visible'
-         LIMIT 1"
-    );
-    $hasVisibilityColumn = !empty($visibilityColumn);
-
-    if (!$hasVisibilityColumn) {
-        try {
-            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
-            $hasVisibilityColumn = true;
-        } catch (Exception $e) {
-            // Keep storefront usable if schema auto-repair fails.
-        }
-    }
-} catch (Exception $e) {
-    // Keep storefront usable without visibility filter.
-}
-
 $params = [];
-$whereClauses = [];
-
-if ($hasVisibilityColumn) {
-    $whereClauses[] = 'p.is_visible = 1';
-}
+$whereClauses = ['p.is_visible = 1'];
 
 if ($type === 'pot' || $type === 'merch') {
     $whereClauses[] = 'p.type = ?';
@@ -45,7 +17,7 @@ if ($categorySlug) {
     $params[] = $categorySlug;
 }
 
-$where = $whereClauses ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
+$where = 'WHERE ' . implode(' AND ', $whereClauses);
 
 $products = Database::fetchAll(
     "SELECT p.*, c.name as category_name, c.slug as category_slug
@@ -136,6 +108,7 @@ $categories = Database::fetchAll("SELECT * FROM shop_categories ORDER BY type, n
                             <a href="<?= e($product['external_url']) ?>" target="_blank" rel="noopener" class="btn btn--small btn--primary">Buy Now ↗</a>
                             <?php elseif ($product['type'] === 'pot' && $product['price'] > 0): ?>
                             <form method="POST" action="/shop/checkout.php">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="btn btn--small btn--primary">Buy Now</button>

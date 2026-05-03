@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
+csrf_verify();
 
 // Support GET (from order list quick action) or POST (from order detail form)
 $id = (int)(($_POST['id'] ?? $_GET['id'] ?? 0));

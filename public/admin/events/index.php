@@ -98,7 +98,7 @@ function getAssignedPieceCount($eventId) {
                         <td><?= e($event['sort_order']) ?></td>
                         <td class="actions-cell">
                             <a href="/admin/events/edit.php?id=<?= $event['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
-                            <a href="/admin/events/delete.php?id=<?= $event['id'] ?>"
+                            <a href="/admin/events/delete.php?id=<?= $event['id'] ?>&csrf=<?= e(csrf_token()) ?>"
                                class="admin-btn admin-btn--sm admin-btn--danger"
                                onclick="return confirm('Delete \'<?= e(addslashes($event['name'])) ?>\'? This cannot be undone.')">
                                 Delete

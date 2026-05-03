@@ -2,52 +2,6 @@
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
-// Self-heal for partial migrations and detect available columns.
-$announcementColumns = [];
-$schemaMismatchErrors = [];
-try {
-    $columnRows = Database::fetchAll(
-        "SELECT COLUMN_NAME
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'announcements'"
-    );
-
-    foreach ($columnRows as $row) {
-        $announcementColumns[$row['COLUMN_NAME']] = true;
-    }
-
-    $repairSql = [
-        'publish_date' => "ALTER TABLE announcements ADD COLUMN publish_date DATETIME NOT NULL AFTER title",
-        'image_path' => "ALTER TABLE announcements ADD COLUMN image_path TEXT AFTER publish_date",
-        'image_thumb' => "ALTER TABLE announcements ADD COLUMN image_thumb TEXT AFTER image_path",
-        'description' => "ALTER TABLE announcements ADD COLUMN description TEXT AFTER title",
-        'content' => "ALTER TABLE announcements ADD COLUMN content TEXT NULL AFTER description",
-        'created_by' => "ALTER TABLE announcements ADD COLUMN created_by INT NULL AFTER image_thumb",
-    ];
-
-    foreach ($repairSql as $col => $sql) {
-        if (empty($announcementColumns[$col])) {
-            try {
-                Database::query($sql);
-                $announcementColumns[$col] = true;
-            } catch (Exception $e) {
-                // Continue; we'll avoid writing to columns that still do not exist.
-            }
-        }
-    }
-
-    $requiredColumns = ['title', 'publish_date', 'image_path', 'image_thumb'];
-    foreach ($requiredColumns as $requiredCol) {
-        if (empty($announcementColumns[$requiredCol])) {
-            $schemaMismatchErrors[] = "Missing announcements." . $requiredCol . " column. Run update_002_announcements patch.";
-        }
-    }
-} catch (Exception $e) {
-    // Keep page usable; dynamic field mapping below prevents bad inserts.
-    $schemaMismatchErrors[] = 'Could not verify announcements schema. Please run the schema health check.';
-}
-
 $isEdit = !empty($_GET['id']);
 $announcementId = $isEdit ? (int)$_GET['id'] : null;
 $announcement = null;
@@ -67,6 +21,7 @@ if ($isEdit) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     try {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
@@ -79,20 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!strtotime($publishDate)) throw new RuntimeException('Invalid publish date format.');
         
         $data = [
-            'title' => $title,
+            'title'        => $title,
+            'description'  => $description,
             'publish_date' => date('Y-m-d H:i:s', strtotime($publishDate)),
+            'created_by'   => $_SESSION['admin_id'] ?? (Auth::getUser()['id'] ?? null),
         ];
-
-        if (!empty($announcementColumns['description'])) {
-            $data['description'] = $description;
-        }
-        if (!empty($announcementColumns['content'])) {
-            $data['content'] = $description;
-        }
-
-        if (!empty($announcementColumns['created_by'])) {
-            $data['created_by'] = $_SESSION['admin_id'] ?? (Auth::getUser()['id'] ?? null);
-        }
 
         // Handle image upload
         $imagePath = null;
@@ -150,12 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if (!empty($announcementColumns['image_path'])) {
-            $data['image_path'] = $imagePath;
-        }
-        if (!empty($announcementColumns['image_thumb'])) {
-            $data['image_thumb'] = $imageThumb;
-        }
+        $data['image_path']  = $imagePath;
+        $data['image_thumb'] = $imageThumb;
 
         // Insert or update announcement
         if ($isEdit) {
@@ -263,12 +205,10 @@ foreach ($linkedEntities as $link) {
             <h1><?= $isEdit ? 'Edit Announcement' : 'Add Announcement' ?></h1>
             <a href="/admin/announcements/index.php" class="admin-btn">← Back</a>
         </div>
-        <?php foreach ($schemaMismatchErrors as $schemaError): ?>
-            <div class="alert alert--error"><?= e($schemaError) ?></div>
-        <?php endforeach; ?>
         <?php if (!empty($error)): ?><div class="alert alert--error"><?= e($error) ?></div><?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="admin-form" id="announcementForm">
+            <?= csrf_field() ?>
             <div class="form-grid">
                 <!-- Title -->
                 <div class="form-group form-group--full">
@@ -281,7 +221,7 @@ foreach ($linkedEntities as $link) {
                 <!-- Description -->
                 <div class="form-group form-group--full">
                     <label>Description</label>
-                    <textarea name="description" rows="3" placeholder="Describe the announcement..."><?= e($_POST['description'] ?? ($announcement['description'] ?? ($announcement['content'] ?? ''))) ?></textarea>
+                    <textarea name="description" rows="3" placeholder="Describe the announcement..."><?= e($_POST['description'] ?? ($announcement['description'] ?? '')) ?></textarea>
                 </div>
 
                 <!-- Publish Date -->

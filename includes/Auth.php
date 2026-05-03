@@ -91,9 +91,8 @@ class Auth {
             return false;
         }
 
-        // Upsert user in DB — reusing google_id column for GitHub numeric user ID
         $existing = Database::fetchOne(
-            "SELECT id FROM admin_users WHERE google_id = ?",
+            "SELECT id FROM admin_users WHERE provider_user_id = ?",
             [$githubUser['id']]
         );
 
@@ -106,18 +105,19 @@ class Auth {
                 'name'       => $name,
                 'avatar_url' => $avatar,
                 'last_login' => date('Y-m-d H:i:s'),
-            ], 'google_id = :google_id', ['google_id' => $githubUser['id']]);
+            ], 'provider_user_id = :provider_user_id', ['provider_user_id' => $githubUser['id']]);
             $userId = $existing['id'];
         } else {
             $userId = Database::insert('admin_users', [
-                'google_id'  => $githubUser['id'],
-                'email'      => $email,
-                'name'       => $name,
-                'avatar_url' => $avatar,
+                'provider_user_id' => $githubUser['id'],
+                'email'            => $email,
+                'name'             => $name,
+                'avatar_url'       => $avatar,
             ]);
         }
 
         self::start();
+        session_regenerate_id(true);
         $_SESSION['admin_id']   = $userId;
         $_SESSION['admin_user'] = [
             'id'     => $userId,

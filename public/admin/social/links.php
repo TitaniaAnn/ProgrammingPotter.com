@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $action = $_POST['action'] ?? '';
     if ($action === 'add') {
         Database::insert('social_links', [
@@ -49,6 +50,7 @@ $links = Database::fetchAll("SELECT * FROM social_links ORDER BY sort_order ASC"
             <div class="admin-card">
                 <h2>Add Social Link</h2>
                 <form method="POST" class="admin-form">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="action" value="add">
                     <div class="form-group">
                         <label>Platform</label>
@@ -90,11 +92,13 @@ $links = Database::fetchAll("SELECT * FROM social_links ORDER BY sort_order ASC"
                             <td><?= $link['active'] ? '✅' : '❌' ?></td>
                             <td class="actions-cell">
                                 <form method="POST" style="display:inline">
+                                    <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="toggle">
                                     <input type="hidden" name="id" value="<?= $link['id'] ?>">
                                     <button class="admin-btn admin-btn--sm"><?= $link['active'] ? 'Hide' : 'Show' ?></button>
                                 </form>
                                 <form method="POST" style="display:inline">
+                                    <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="id" value="<?= $link['id'] ?>">
                                     <button class="admin-btn admin-btn--sm admin-btn--danger"

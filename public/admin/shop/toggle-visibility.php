@@ -1,35 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
-
-$hasVisibilityColumn = false;
-try {
-    $visibilityColumn = Database::fetchOne(
-        "SELECT COLUMN_NAME
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'products'
-           AND COLUMN_NAME = 'is_visible'
-         LIMIT 1"
-    );
-    $hasVisibilityColumn = !empty($visibilityColumn);
-
-    if (!$hasVisibilityColumn) {
-        try {
-            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
-            $hasVisibilityColumn = true;
-        } catch (Exception $e) {
-            // Keep request safe if schema auto-repair fails.
-        }
-    }
-} catch (Exception $e) {
-    // Keep request safe if schema lookup fails.
-}
-
-if (!$hasVisibilityColumn) {
-    flash('error', 'Product visibility is not available on this database yet.');
-    redirect(SITE_URL . '/admin/shop/index.php');
-}
+csrf_verify();
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {

@@ -89,10 +89,15 @@ class Mailer {
     }
 
     private static function send(string $to, string $subject, string $body, string $replyTo = ''): void {
-        $headers = "From: " . setting('site_name', 'My Pottery') . " <" . setting('contact_email') . ">\r\n";
+        $fromName    = self::sanitizeHeader(setting('site_name', 'My Pottery'));
+        $fromAddress = self::sanitizeHeader(setting('contact_email'));
+        $subject     = self::sanitizeHeader($subject);
+        $to          = self::sanitizeHeader($to);
+
+        $headers  = "From: {$fromName} <{$fromAddress}>\r\n";
         $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
         if ($replyTo) {
-            $headers .= "Reply-To: {$replyTo}\r\n";
+            $headers .= "Reply-To: " . self::sanitizeHeader($replyTo) . "\r\n";
         }
 
         // PHP mail() — works on most shared hosts.
@@ -101,5 +106,10 @@ class Mailer {
         // - Resend: https://resend.com (3,000/mo free)
         // - Mailgun, SendGrid, etc.
         @mail($to, $subject, $body, $headers);
+    }
+
+    private static function sanitizeHeader(string $value): string {
+        // Strip CRLF and any control characters that could split headers.
+        return trim(preg_replace('/[\r\n\x00-\x1F]+/', ' ', $value));
     }
 }

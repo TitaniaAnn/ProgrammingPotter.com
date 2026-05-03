@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $fields = [
         'site_name', 'tagline', 'bio', 'about_text',
         'hero_title', 'hero_subtitle', 'hero_image', 'shop_intro', 'contact_email', 'profile_photo'
@@ -77,6 +78,7 @@ foreach ($rows as $row) { $s[$row['setting_key']] = $row['setting_value']; }
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="admin-form">
+            <?= csrf_field() ?>
             <div class="admin-card">
                 <h2>Branding</h2>
                 <div class="form-grid">

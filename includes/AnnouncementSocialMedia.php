@@ -19,8 +19,8 @@ class AnnouncementSocialMedia {
      */
     public static function postToInstagram($announcementId, $imagePath, $caption) {
         $businessAccountId = defined('INSTAGRAM_BUSINESS_ACCOUNT_ID') ? INSTAGRAM_BUSINESS_ACCOUNT_ID : null;
-        $accessToken = defined('INSTAGRAM_ACCESS_TOKEN') ? INSTAGRAM_ACCESS_TOKEN : null;
-        
+        $accessToken       = self::getInstagramAccessToken();
+
         if (empty($businessAccountId) || empty($accessToken)) {
             throw new Exception('Instagram credentials not configured. Set INSTAGRAM_BUSINESS_ACCOUNT_ID and INSTAGRAM_ACCESS_TOKEN in .env');
         }
@@ -138,93 +138,21 @@ class AnnouncementSocialMedia {
      * @throws Exception
      */
     public static function postToTikTok($announcementId, $imagePath, $caption) {
-        $businessAccountId = defined('TIKTOK_BUSINESS_ACCOUNT_ID') ? TIKTOK_BUSINESS_ACCOUNT_ID : null;
-        $accessToken = defined('TIKTOK_ACCESS_TOKEN') ? TIKTOK_ACCESS_TOKEN : null;
-        
-        if (empty($businessAccountId) || empty($accessToken)) {
-            throw new Exception('TikTok credentials not configured. Set TIKTOK_BUSINESS_ACCOUNT_ID and TIKTOK_ACCESS_TOKEN in .env');
-        }
-        
-        if (!file_exists($imagePath)) {
-            throw new Exception('Image file not found: ' . $imagePath);
-        }
-        
-        // TikTok has lower caption limit
-        $caption = substr($caption, 0, 150);
-        
-        try {
-            // TikTok uses a different API structure
-            // Note: TikTok's API requires video content for regular API
-            // Image posts typically require the TikTok Creative Center
-            // This is a simplified implementation using their content posting API
-            
-            $url = 'https://open.tiktokapis.com/v1/post/publish/action/init/';
-            
-            $postData = json_encode([
-                'source_info' => [
-                    'source' => 'CREATIVE_CENTER',
-                ],
-                'post_info' => [
-                    'title' => $caption,
-                    'privacy_level' => 'PUBLIC_TO_ANYONE',
-                ],
-            ]);
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => [
-                        'Content-Type: application/json',
-                        'Authorization: Bearer ' . $accessToken,
-                    ],
-                    'content' => $postData,
-                    'timeout' => 30,
-                ],
-                'https' => [
-                    'verify_peer' => true,
-                ],
-            ]);
-            
-            $response = @file_get_contents($url, false, $context);
-            if ($response === false) {
-                throw new Exception('TikTok API request failed');
-            }
-            
-            $result = json_decode($response, true);
-            
-            if (!isset($result['data']['publish_id'])) {
-                $error = $result['error']['message'] ?? ($result['message'] ?? 'Unknown error from TikTok API');
-                throw new Exception('TikTok API error: ' . $error);
-            }
-            
-            $publishId = $result['data']['publish_id'];
-            
-            // Note: TikTok's image post flow is complex and requires special handling
-            // For MVP, we'll record the publish intent
-            
-            Database::insert('announcement_social_posts', [
-                'announcement_id' => $announcementId,
-                'platform' => 'tiktok',
-                'platform_post_id' => $publishId,
-                'status' => 'success',
-            ]);
-            
-            return [
-                'post_id' => $publishId,
-                'platform' => 'tiktok',
-                'url' => 'https://www.tiktok.com/@[username]/video/' . $publishId,
-            ];
-            
-        } catch (Exception $e) {
-            // Record failure in database
-            Database::insert('announcement_social_posts', [
-                'announcement_id' => $announcementId,
-                'platform' => 'tiktok',
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
+        // TikTok's Content Posting API requires video uploads; the image flow
+        // requires Creative Center integration that isn't wired up here. The
+        // previous implementation called the init endpoint and then recorded
+        // 'success' even though no image ever published, so disable the path
+        // explicitly until proper video/image support is added.
+        $message = 'TikTok image posting is not supported. Use Instagram, or post manually until the TikTok video flow is implemented.';
+
+        Database::insert('announcement_social_posts', [
+            'announcement_id' => $announcementId,
+            'platform'        => 'tiktok',
+            'status'          => 'failed',
+            'error_message'   => $message,
+        ]);
+
+        throw new Exception($message);
     }
     
     /**
@@ -233,18 +161,121 @@ class AnnouncementSocialMedia {
      * @return array ['instagram' => bool, 'tiktok' => bool]
      */
     public static function validateTokens() {
+        $igAccount = defined('INSTAGRAM_BUSINESS_ACCOUNT_ID') ? INSTAGRAM_BUSINESS_ACCOUNT_ID : null;
+        $igToken   = self::getInstagramAccessToken();
+        $igExpiry  = self::getInstagramTokenExpiry();
+        $igExpired = $igExpiry !== null && $igExpiry < new DateTimeImmutable();
+
         return [
-            'instagram' => !empty(defined('INSTAGRAM_BUSINESS_ACCOUNT_ID') ? INSTAGRAM_BUSINESS_ACCOUNT_ID : null) 
-                        && !empty(defined('INSTAGRAM_ACCESS_TOKEN') ? INSTAGRAM_ACCESS_TOKEN : null),
-            'tiktok' => !empty(defined('TIKTOK_BUSINESS_ACCOUNT_ID') ? TIKTOK_BUSINESS_ACCOUNT_ID : null) 
-                     && !empty(defined('TIKTOK_ACCESS_TOKEN') ? TIKTOK_ACCESS_TOKEN : null),
+            'instagram' => !empty($igAccount) && !empty($igToken) && !$igExpired,
+            // TikTok image posting is not supported; the API requires video.
+            // Hide TikTok from platform selection UIs until the flow is built.
+            'tiktok'    => false,
         ];
     }
-    
+
+    // -----------------------------------------------------------
+    //  Token lifecycle
+    //
+    //  Instagram long-lived tokens expire ~60 days from issuance and can be
+    //  refreshed (extended another 60 days) once they are >24h old. We store
+    //  the live token + expiry in the `settings` table so a refresh persists
+    //  without needing to redeploy the .env file.
+    // -----------------------------------------------------------
+
+    public static function getInstagramAccessToken(): ?string {
+        $stored = setting('instagram_access_token', '');
+        if ($stored !== '') {
+            return $stored;
+        }
+        return defined('INSTAGRAM_ACCESS_TOKEN') ? (INSTAGRAM_ACCESS_TOKEN ?: null) : null;
+    }
+
+    public static function getInstagramTokenExpiry(): ?DateTimeImmutable {
+        $iso = setting('instagram_token_expires_at', '');
+        if ($iso === '') {
+            return null;
+        }
+        try {
+            return new DateTimeImmutable($iso);
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    public static function getInstagramTokenLastRefreshed(): ?DateTimeImmutable {
+        $iso = setting('instagram_token_refreshed_at', '');
+        if ($iso === '') {
+            return null;
+        }
+        try {
+            return new DateTimeImmutable($iso);
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Call Instagram's refresh_access_token endpoint to extend the current
+     * long-lived token. Persists the new token + expiry to settings.
+     *
+     * @return array{access_token:string, expires_in:int, expires_at:string}
+     * @throws Exception
+     */
+    public static function refreshInstagramToken(): array {
+        $current = self::getInstagramAccessToken();
+        if (empty($current)) {
+            throw new Exception('No Instagram access token available to refresh. Set INSTAGRAM_ACCESS_TOKEN in .env first.');
+        }
+
+        $url = 'https://graph.instagram.com/refresh_access_token?' . http_build_query([
+            'grant_type'   => 'ig_refresh_token',
+            'access_token' => $current,
+        ]);
+
+        $context = stream_context_create([
+            'http'  => ['method' => 'GET', 'timeout' => 30],
+            'https' => ['verify_peer' => true, 'verify_peer_name' => true],
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            throw new Exception('Instagram refresh request failed (network error).');
+        }
+
+        $data = json_decode($response, true);
+        if (!isset($data['access_token'], $data['expires_in'])) {
+            $err = $data['error']['message'] ?? 'Unknown response from Instagram refresh endpoint.';
+            throw new Exception('Instagram refresh error: ' . $err);
+        }
+
+        $expiresIn = (int) $data['expires_in'];
+        $expiresAt = (new DateTimeImmutable())->modify("+{$expiresIn} seconds")->format('Y-m-d H:i:s');
+        $now       = (new DateTimeImmutable())->format('Y-m-d H:i:s');
+
+        self::storeSetting('instagram_access_token',       $data['access_token']);
+        self::storeSetting('instagram_token_expires_at',   $expiresAt);
+        self::storeSetting('instagram_token_refreshed_at', $now);
+
+        return [
+            'access_token' => $data['access_token'],
+            'expires_in'   => $expiresIn,
+            'expires_at'   => $expiresAt,
+        ];
+    }
+
+    private static function storeSetting(string $key, string $value): void {
+        Database::query(
+            "INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)",
+            [$key, $value]
+        );
+    }
+
     /**
      * Get public URL for an image file
      * Used for passing to social APIs that need HTTP(S) accessible URLs
-     * 
+     *
      * @param string $imagePath - Full server path
      * @return string - Public HTTP(S) URL
      */

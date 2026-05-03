@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../includes/bootstrap.php';
 require_once __DIR__ . '/../../../includes/AnnouncementSocialMedia.php';
 
 Auth::requireLogin();
+csrf_verify();
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
@@ -31,7 +32,7 @@ if (empty($announcement['image_path']) || !file_exists($announcement['image_path
 
 // Build caption from announcement + linked entities
 $caption = $announcement['title'];
-$announcementBody = trim((string)($announcement['description'] ?? $announcement['content'] ?? ''));
+$announcementBody = trim((string)($announcement['description'] ?? ''));
 if ($announcementBody !== '') {
     // Include brief description if present
     $desc = substr($announcementBody, 0, 100);

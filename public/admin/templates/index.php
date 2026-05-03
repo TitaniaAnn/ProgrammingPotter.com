@@ -67,7 +67,7 @@ $templates = Database::fetchAll(
                         <td><?= (int)$t['sort_order'] ?></td>
                         <td>
                             <a href="/admin/templates/edit.php?id=<?= $t['id'] ?>" class="admin-btn admin-btn--sm">Edit</a>
-                            <a href="/admin/templates/delete.php?id=<?= $t['id'] ?>" class="admin-btn admin-btn--sm admin-btn--danger"
+                            <a href="/admin/templates/delete.php?id=<?= $t['id'] ?>&csrf=<?= e(csrf_token()) ?>" class="admin-btn admin-btn--sm admin-btn--danger"
                                onclick="return confirm('Delete this template?')">Delete</a>
                         </td>
                     </tr>

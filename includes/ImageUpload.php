@@ -11,9 +11,11 @@ class ImageUpload {
             throw new RuntimeException('File too large (max 10MB)');
         }
 
-        $mime = mime_content_type($file['tmp_name']);
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime  = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
         $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!in_array($mime, $allowed)) {
+        if (!in_array($mime, $allowed, true)) {
             throw new RuntimeException('Invalid file type. Use JPG, PNG, WebP, or GIF.');
         }
 

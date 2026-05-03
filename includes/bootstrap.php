@@ -20,6 +20,7 @@ require_once ROOT_PATH . '/config/config.php';
 require_once ROOT_PATH . '/includes/Database.php';
 require_once ROOT_PATH . '/includes/Auth.php';
 require_once ROOT_PATH . '/includes/ImageUpload.php';
+require_once ROOT_PATH . '/includes/MultiFileUpload.php';
 require_once ROOT_PATH . '/includes/Stripe.php';
 require_once ROOT_PATH . '/includes/Mailer.php';
 
@@ -50,6 +51,29 @@ function redirect(string $url): void {
 
 function flash(string $type, string $msg): void {
     $_SESSION['flash'] = ['type' => $type, 'msg' => $msg];
+}
+
+function csrf_token(): string {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrf_field(): string {
+    return '<input type="hidden" name="csrf" value="' . e(csrf_token()) . '">';
+}
+
+function csrf_verify(): void {
+    $supplied = $_POST['csrf'] ?? $_GET['csrf'] ?? '';
+    $expected = $_SESSION['csrf_token'] ?? '';
+    if (!$expected || !is_string($supplied) || !hash_equals($expected, $supplied)) {
+        http_response_code(403);
+        flash('error', 'Security check failed. Please try again.');
+        $referer = $_SERVER['HTTP_REFERER'] ?? (defined('SITE_URL') ? SITE_URL . '/admin/dashboard.php' : '/');
+        header('Location: ' . $referer);
+        exit;
+    }
 }
 
 function getFlash(): ?array {

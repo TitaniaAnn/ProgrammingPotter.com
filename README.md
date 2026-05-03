@@ -1,6 +1,6 @@
 # 🏺 Pottery Portfolio Website
 
-A full PHP + MySQL portfolio website with Google OAuth admin backend, portfolio gallery, and shop with print-on-demand support.
+A full PHP + MySQL portfolio website with GitHub OAuth admin backend, portfolio gallery, and shop with print-on-demand support.
 
 ---
 
@@ -9,37 +9,37 @@ A full PHP + MySQL portfolio website with Google OAuth admin backend, portfolio 
 ```
 pottery/
 ├── config/
-│   └── config.php           # DB + OAuth credentials
+│   └── config.php           # DB + OAuth credentials (reads .env)
 ├── includes/
 │   ├── bootstrap.php        # Loaded by all pages
 │   ├── Database.php         # PDO database helper
-│   ├── Auth.php             # Google OAuth
+│   ├── Auth.php             # GitHub OAuth
 │   └── ImageUpload.php      # Image upload + thumbnail
-├── templates/
-│   ├── nav.php              # Public nav
-│   └── footer.php           # Public footer
 ├── public/
 │   ├── index.php            # Homepage
 │   ├── portfolio.php        # Portfolio gallery + lightbox
 │   ├── shop.php             # Shop (pots + merch)
 │   ├── about.php            # About page
+│   ├── templates/
+│   │   ├── nav.php          # Public nav
+│   │   └── footer.php       # Public footer
 │   ├── css/style.css        # Main stylesheet
 │   ├── js/main.js           # Nav + misc JS
 │   ├── js/portfolio.js      # Lightbox
-│   └── uploads/             # (created automatically)
-├── admin/
-│   ├── login.php            # Google login
-│   ├── logout.php
-│   ├── dashboard.php
-│   ├── auth/callback.php    # Google OAuth callback
-│   ├── pottery/             # Portfolio CRUD
-│   ├── shop/                # Shop CRUD
-│   ├── social/              # Social posts + links
-│   ├── settings/            # Site content settings
-│   ├── css/admin.css
-│   ├── js/admin.js
-│   └── partials/            # Sidebar, topbar
-└── schema.sql               # Database schema
+│   ├── uploads/             # (created automatically)
+│   └── admin/
+│       ├── login.php        # GitHub login
+│       ├── logout.php
+│       ├── dashboard.php
+│       ├── auth/callback.php  # GitHub OAuth callback
+│       ├── pottery/         # Portfolio CRUD
+│       ├── shop/            # Shop CRUD
+│       ├── social/          # Social posts + links
+│       ├── settings/        # Site content settings
+│       ├── css/admin.css
+│       ├── js/admin.js
+│       └── partials/        # Sidebar, topbar
+└── sql/init.sql             # Canonical database schema
 ```
 
 ---
@@ -49,23 +49,26 @@ pottery/
 ### 1. Database
 
 ```bash
-mysql -u root -p < schema.sql
+mysql -u root -p < sql/init.sql
 ```
 
 ### 2. Config
 
-Edit `config/config.php`:
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'pottery_portfolio');
-define('DB_USER', 'your_db_user');
-define('DB_PASS', 'your_db_password');
-define('SITE_URL', 'https://yourdomain.com');
-
-define('GOOGLE_CLIENT_ID',     'YOUR_GOOGLE_CLIENT_ID');
-define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
-define('ALLOWED_ADMIN_EMAILS', 'your@gmail.com');
+Copy `.env.example` to `.env` (or create `.env`) at the project root:
 ```
+DB_HOST=localhost
+DB_NAME=pottery_portfolio
+DB_USER=your_db_user
+DB_PASS=your_db_password
+GITHUB_CLIENT_ID=your_client_id
+GITHUB_CLIENT_SECRET=your_client_secret
+ALLOWED_GITHUB_USERS=your-github-username
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+`config/config.php` reads these via `vlucas/phpdotenv` and fails fast if any required value is missing.
 
 ### 3. GitHub OAuth Setup
 
@@ -130,7 +133,7 @@ chown -R www-data:www-data public/uploads  # Linux
 
 Visit: `https://yourdomain.com/admin/login.php`
 
-Sign in with your Google account. Only emails listed in `ALLOWED_ADMIN_EMAILS` can access the admin.
+Sign in with GitHub. Only usernames listed in `ALLOWED_GITHUB_USERS` (in `.env`) can access the admin.
 
 ---
 
@@ -184,7 +187,10 @@ The homepage shows posts marked as "featured".
 
 ## Security Notes
 
-- Google OAuth only allows your specific email(s) in `ALLOWED_ADMIN_EMAILS`
-- Uploaded files are stored outside web-accessible directories (configure your server)
-- All user input is escaped with `htmlspecialchars` or parameterised queries
-- Enable HTTPS and uncomment the redirect in `.htaccess`
+- GitHub OAuth only allows usernames listed in `ALLOWED_GITHUB_USERS` (`.env`)
+- All admin POST handlers and GET-style delete endpoints validate a per-session CSRF token
+- Sessions regenerate their ID on login and run with `httponly` + `samesite=Lax`
+- All user input is escaped with `e()`/`htmlspecialchars` or parameterised queries
+- Stripe webhooks are deduplicated by event id in `stripe_webhook_events`
+- `includes/`, `config/`, `sql/` carry `.htaccess` deny rules
+- Enable HTTPS at the web server level

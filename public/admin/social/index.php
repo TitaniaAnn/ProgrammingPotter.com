@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $action = $_POST['action'] ?? '';
     if ($action === 'add') {
         Database::insert('social_posts', [
@@ -47,6 +48,7 @@ $posts = Database::fetchAll("SELECT * FROM social_posts ORDER BY sort_order ASC,
             <div class="admin-card">
                 <h2>Add Social Post</h2>
                 <form method="POST" class="admin-form">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="action" value="add">
                     <div class="form-group">
                         <label>Platform</label>
@@ -110,6 +112,7 @@ $posts = Database::fetchAll("SELECT * FROM social_posts ORDER BY sort_order ASC,
                             <span><?= $post['featured'] ? '⭐ Featured' : 'Hidden' ?></span>
                         </div>
                         <form method="POST" style="margin-top:.5rem;">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $post['id'] ?>">
                             <button type="submit" class="admin-btn admin-btn--sm admin-btn--danger"

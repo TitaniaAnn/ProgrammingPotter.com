@@ -25,6 +25,7 @@ jobs:
           **/.git*/**
           **/node_modules/**
           **/vendor/**
+          patches/**
           .env
           docker-compose.yml
           Dockerfile

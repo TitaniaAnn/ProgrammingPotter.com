@@ -2,45 +2,6 @@
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 Auth::requireLogin();
 
-$hasVisibilityColumn = false;
-try {
-    $visibilityColumn = Database::fetchOne(
-        "SELECT COLUMN_NAME
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'products'
-           AND COLUMN_NAME = 'is_visible'
-         LIMIT 1"
-    );
-    $hasVisibilityColumn = !empty($visibilityColumn);
-
-    if (!$hasVisibilityColumn) {
-        try {
-            Database::query("ALTER TABLE products ADD COLUMN is_visible TINYINT(1) NOT NULL DEFAULT 1 AFTER status");
-            $hasVisibilityColumn = true;
-        } catch (Exception $e) {
-            // Keep the page usable if DB user cannot alter schema.
-        }
-    }
-} catch (Exception $e) {
-    // Keep the page usable; visibility controls are hidden if schema can't be checked.
-}
-
-Database::query(
-    "CREATE TABLE IF NOT EXISTS product_images (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        product_id INT NOT NULL,
-        image_path TEXT NOT NULL,
-        image_thumb TEXT NULL,
-        sort_order INT DEFAULT 0,
-        is_primary TINYINT(1) DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        KEY idx_product_sort (product_id, sort_order),
-        CONSTRAINT fk_product_images_product
-            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-);
-
 function productImageThumbPath(?string $path): ?string {
     if (empty($path)) {
         return null;
@@ -116,6 +77,7 @@ if ($isEdit) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     try {
         $type = $_POST['type'] ?? ($product['type'] ?? 'pot');
         $data = [
@@ -135,31 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'sort_order'   => (int)($_POST['sort_order'] ?? 0),
         ];
 
-        if ($hasVisibilityColumn) {
-            $data['is_visible'] = isset($_POST['is_visible']) ? 1 : 0;
-        }
+        $data['is_visible'] = isset($_POST['is_visible']) ? 1 : 0;
 
         if (empty($data['name'])) throw new RuntimeException('Name is required.');
 
         $newUploads = [];
-        if (!empty($_FILES['images']['name'][0])) {
-            $files = $_FILES['images'];
-            $count = count($files['name']);
-            for ($index = 0; $index < $count; $index++) {
-                if ($files['error'][$index] !== UPLOAD_ERR_OK || empty($files['name'][$index])) {
-                    continue;
-                }
-
-                $file = [
-                    'name' => $files['name'][$index],
-                    'type' => $files['type'][$index],
-                    'tmp_name' => $files['tmp_name'][$index],
-                    'error' => $files['error'][$index],
-                    'size' => $files['size'][$index],
-                ];
-
-                $newUploads[] = ImageUpload::upload($file, 'products');
-            }
+        foreach (MultiFileUpload::parse($_FILES['images'] ?? null) as $file) {
+            $newUploads[] = ImageUpload::upload($file, 'products');
         }
 
         if ($isEdit) {
@@ -260,6 +204,7 @@ $selectedType = $formData['type'] ?? 'pot';
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="admin-form" id="productForm">
+            <?= csrf_field() ?>
             <input type="hidden" name="primary_image_id" id="primaryImageId" value="">
 
             <!-- Product Type Tabs -->
@@ -308,7 +253,6 @@ $selectedType = $formData['type'] ?? 'pot';
                         <option value="coming_soon" <?= ($formData['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
                     </select>
                 </div>
-                <?php if ($hasVisibilityColumn): ?>
                 <div class="form-group">
                     <label>Storefront Visibility</label>
                     <label style="display: inline-flex; align-items: center; gap: .5rem; margin-top: .25rem;">
@@ -317,7 +261,6 @@ $selectedType = $formData['type'] ?? 'pot';
                         Show this product in the public shop
                     </label>
                 </div>
-                <?php endif; ?>
 
                 <!-- Pot-only fields -->
                 <div class="form-group pot-only">
@@ -448,12 +391,13 @@ function setPrimary(imageId) {
     });
 }
 
+const CSRF_TOKEN = <?= json_encode(csrf_token()) ?>;
 async function deleteImage(imageId, productId) {
     if (!confirm('Delete this image?')) {
         return;
     }
 
-    const response = await fetch(`/admin/shop/delete_image.php?img_id=${imageId}&product_id=${productId}`);
+    const response = await fetch(`/admin/shop/delete-image.php?img_id=${imageId}&product_id=${productId}&csrf=${encodeURIComponent(CSRF_TOKEN)}`);
     const result = await response.json();
 
     if (!result.success) {

@@ -8,7 +8,12 @@
 $requiredEnv = [
     'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS',
     'GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET',
-    'STRIPE_PUBLISHABLE_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
+    // No default for ALLOWED_GITHUB_USERS — a missing env var must NOT silently
+    // fall back to the original developer's account.
+    'ALLOWED_GITHUB_USERS',
+    // Stripe vars are intentionally NOT required. The site runs without them;
+    // the shop falls back to "contact me to purchase" UX. See STRIPE_ENABLED
+    // below.
 ];
 $missing = [];
 foreach ($requiredEnv as $var) {
@@ -22,15 +27,25 @@ if (!empty($missing)) {
     exit('Configuration error: site is not fully configured. See server logs.');
 }
 
-// Reject obvious placeholder Stripe values shipping into prod.
-foreach (['STRIPE_PUBLISHABLE_KEY' => 'pk_', 'STRIPE_SECRET_KEY' => 'sk_', 'STRIPE_WEBHOOK_SECRET' => 'whsec_'] as $var => $expectedPrefix) {
-    $val = $_ENV[$var];
-    if (strpos($val, 'YOUR_') !== false || strpos($val, $expectedPrefix) !== 0) {
-        http_response_code(500);
-        error_log("Configuration error: {$var} looks like a placeholder.");
-        exit('Configuration error: payment keys are not configured. See server logs.');
+// Stripe is opt-in. Treat it as enabled iff all three keys are present and
+// non-empty. When enabled, sanity-check them. When disabled, the shop UI hides
+// "Buy Now" and the checkout/webhook entry points refuse politely.
+$stripeKeys = ['STRIPE_PUBLISHABLE_KEY' => 'pk_', 'STRIPE_SECRET_KEY' => 'sk_', 'STRIPE_WEBHOOK_SECRET' => 'whsec_'];
+$stripeEnabled = true;
+foreach ($stripeKeys as $var => $_) {
+    if (empty($_ENV[$var])) { $stripeEnabled = false; break; }
+}
+if ($stripeEnabled) {
+    foreach ($stripeKeys as $var => $expectedPrefix) {
+        $val = $_ENV[$var];
+        if (strpos($val, 'YOUR_') !== false || strpos($val, $expectedPrefix) !== 0) {
+            http_response_code(500);
+            error_log("Configuration error: {$var} looks like a placeholder.");
+            exit('Configuration error: payment keys are not configured. See server logs.');
+        }
     }
 }
+define('STRIPE_ENABLED', $stripeEnabled);
 
 define('DB_HOST', $_ENV['DB_HOST']);
 define('DB_NAME', $_ENV['DB_NAME']);
@@ -51,13 +66,15 @@ define('GITHUB_CLIENT_SECRET', $_ENV['GITHUB_CLIENT_SECRET']);
 define('GITHUB_REDIRECT_URI',  SITE_URL . '/admin/auth/callback.php');
 
 // Comma-separated list of GitHub usernames allowed to log in as admin.
-// Override via ALLOWED_GITHUB_USERS in .env without redeploying.
-define('ALLOWED_GITHUB_USERS', $_ENV['ALLOWED_GITHUB_USERS'] ?? 'TitaniaAnn');
+// Required env var — see $requiredEnv above. There is intentionally no default.
+define('ALLOWED_GITHUB_USERS', $_ENV['ALLOWED_GITHUB_USERS']);
 
-// Stripe — get from https://dashboard.stripe.com/apikeys
-define('STRIPE_PUBLISHABLE_KEY', $_ENV['STRIPE_PUBLISHABLE_KEY']);
-define('STRIPE_SECRET_KEY',      $_ENV['STRIPE_SECRET_KEY']);
-define('STRIPE_WEBHOOK_SECRET',  $_ENV['STRIPE_WEBHOOK_SECRET']);
+// Stripe — get from https://dashboard.stripe.com/apikeys.
+// Constants are always defined so existing references don't fatal; the empty
+// fallbacks are guarded by STRIPE_ENABLED above.
+define('STRIPE_PUBLISHABLE_KEY', $_ENV['STRIPE_PUBLISHABLE_KEY'] ?? '');
+define('STRIPE_SECRET_KEY',      $_ENV['STRIPE_SECRET_KEY']      ?? '');
+define('STRIPE_WEBHOOK_SECRET',  $_ENV['STRIPE_WEBHOOK_SECRET']  ?? '');
 
 // Social Media Integration — for posting announcements
 // Instagram Graph API — get from Meta Business Manager

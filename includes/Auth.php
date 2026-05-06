@@ -9,11 +9,32 @@ class Auth {
             session_set_cookie_params([
                 'lifetime' => SESSION_LIFETIME,
                 'httponly' => true,
-                'secure'   => isset($_SERVER['HTTPS']),
+                'secure'   => self::isSecureRequest(),
                 'samesite' => 'Lax',
             ]);
             session_start();
         }
+    }
+
+    /**
+     * True when the user-facing request is HTTPS, including the case where
+     * TLS is terminated at an upstream proxy/load balancer (Bluehost,
+     * Cloudflare, etc.) and only X-Forwarded-Proto reflects the real scheme.
+     * Without the X-Forwarded-Proto branch the session cookie would be sent
+     * without the Secure flag in those environments.
+     */
+    public static function isSecureRequest(): bool {
+        if (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') {
+            return true;
+        }
+        $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        if (strcasecmp($forwardedProto, 'https') === 0) {
+            return true;
+        }
+        if (($_SERVER['SERVER_PORT'] ?? '') === '443') {
+            return true;
+        }
+        return false;
     }
 
     public static function isLoggedIn(): bool {

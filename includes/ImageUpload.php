@@ -11,12 +11,15 @@ class ImageUpload {
             throw new RuntimeException('File too large (max 10MB)');
         }
 
+        // GIF is intentionally not allowed: createThumbnail has no IMAGETYPE_GIF
+        // branch, and pottery photos don't need animation. The admin UI also
+        // advertises only JPG/PNG/WebP.
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
-        $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
         if (!in_array($mime, $allowed, true)) {
-            throw new RuntimeException('Invalid file type. Use JPG, PNG, WebP, or GIF.');
+            throw new RuntimeException('Invalid file type. Use JPG, PNG, or WebP.');
         }
 
         $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);

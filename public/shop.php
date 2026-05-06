@@ -106,7 +106,7 @@ $categories = Database::fetchAll("SELECT * FROM shop_categories ORDER BY type, n
                             <a href="<?= e($product['pod_product_url']) ?>" target="_blank" rel="noopener" class="btn btn--small btn--primary">Buy Now ↗</a>
                             <?php elseif ($product['external_url']): ?>
                             <a href="<?= e($product['external_url']) ?>" target="_blank" rel="noopener" class="btn btn--small btn--primary">Buy Now ↗</a>
-                            <?php elseif ($product['type'] === 'pot' && $product['price'] > 0): ?>
+                            <?php elseif ($product['type'] === 'pot' && $product['price'] > 0 && STRIPE_ENABLED): ?>
                             <form method="POST" action="/shop/checkout.php">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="product_id" value="<?= $product['id'] ?>">

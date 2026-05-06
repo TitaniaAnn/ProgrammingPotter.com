@@ -80,6 +80,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Schema Health
         </a>
+        <a href="/admin/migrations/index.php" class="admin-nav__item <?= str_contains($_SERVER['PHP_SELF'], '/admin/migrations/') ? 'active' : '' ?>">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+            Migrations
+        </a>
     </nav>
     <div class="admin-sidebar__footer">
         <a href="/" target="_blank" class="admin-sidebar__view-site">View Site ↗</a>

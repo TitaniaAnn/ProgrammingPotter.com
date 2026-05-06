@@ -6,6 +6,14 @@
 
 require_once __DIR__ . '/../../includes/bootstrap.php';
 
+if (!STRIPE_ENABLED) {
+    // 503 (not 200) so Stripe records the delivery as failed if a misconfigured
+    // endpoint somehow points here. Stripe's retry policy will back off rather
+    // than burning attempts.
+    http_response_code(503);
+    exit('Stripe integration is disabled on this deployment.');
+}
+
 // Webhooks must NOT have session started
 $payload   = file_get_contents('php://input');
 $sigHeader = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
@@ -23,9 +31,14 @@ try {
     exit('Webhook signature verification failed');
 }
 
-// Idempotency: every Stripe event has a unique event->id. Inserting it into the
-// ledger as a primary key gives us atomic exactly-once processing — duplicate
-// retries hit the PK constraint and bail out before any business logic runs.
+// Idempotency contract:
+//   1. Try to claim the event with INSERT (PK on event_id serializes concurrent retries).
+//   2. If insert fails with duplicate-key:
+//        - row.processed_at IS NOT NULL → real duplicate; ack 200 and stop.
+//        - row.processed_at IS NULL     → a previous attempt crashed mid-handler;
+//          re-run the handler and stamp processed_at on success.
+//   3. Wrap the handler + processed_at update in a transaction so a crash
+//      leaves the row in the "claimed but unprocessed" state for the retry.
 try {
     Database::insert('stripe_webhook_events', [
         'event_id' => $event->id,
@@ -33,32 +46,73 @@ try {
     ]);
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {
-        http_response_code(200);
-        exit('duplicate-skipped');
+        $existing = Database::fetchOne(
+            "SELECT processed_at FROM stripe_webhook_events WHERE event_id = ?",
+            [$event->id]
+        );
+        if ($existing && $existing['processed_at'] !== null) {
+            http_response_code(200);
+            exit('duplicate-skipped');
+        }
+        // else: fall through and re-run the handler for the unfinished row.
+    } else {
+        error_log('Stripe webhook ledger insert failed: ' . $e->getMessage());
+        http_response_code(500);
+        exit('Webhook ledger error');
     }
-    error_log('Stripe webhook ledger insert failed: ' . $e->getMessage());
-    http_response_code(500);
-    exit('Webhook ledger error');
 }
 
-switch ($event->type) {
+try {
+    Database::transaction(function () use ($event) {
+        switch ($event->type) {
 
-    case 'checkout.session.completed':
-        $session = $event->data->object;
-        handleCheckoutCompleted($session);
-        break;
+            case 'checkout.session.completed':
+                handleCheckoutCompleted($event->data->object);
+                break;
 
-    case 'payment_intent.payment_failed':
-        $pi = $event->data->object;
+            case 'payment_intent.payment_failed':
+                $pi = $event->data->object;
+                Database::query(
+                    "UPDATE orders SET status = 'cancelled' WHERE stripe_payment_intent = ?",
+                    [$pi->id]
+                );
+                break;
+
+            default:
+                // Ignore other events — but still mark processed so we don't
+                // re-fetch them on retry.
+                break;
+        }
+
         Database::query(
-            "UPDATE orders SET status = 'cancelled' WHERE stripe_payment_intent = ?",
-            [$pi->id]
+            "UPDATE stripe_webhook_events SET processed_at = CURRENT_TIMESTAMP WHERE event_id = ?",
+            [$event->id]
         );
-        break;
+    });
+} catch (\Throwable $e) {
+    // Handler crashed — leave processed_at NULL so Stripe's retry re-runs us.
+    error_log('Stripe webhook handler failed for ' . $event->id . ': ' . $e->getMessage());
+    http_response_code(500);
+    exit('Webhook handler error');
+}
 
-    default:
-        // Ignore other events
-        break;
+// Mail goes out AFTER we've ack'd the work, not inside the transaction.
+// PHP mail() can take seconds; running it inside the webhook would risk
+// exceeding Stripe's 10s deadline and cascading retries.
+if ($event->type === 'checkout.session.completed') {
+    $session = $event->data->object;
+    $order = Database::fetchOne(
+        "SELECT * FROM orders WHERE stripe_session_id = ?",
+        [$session->id]
+    );
+    if ($order && $order['status'] === 'paid') {
+        try {
+            Mailer::notifyOwnerOfSale($order);
+            Mailer::sendCustomerReceipt($order);
+        } catch (\Throwable $e) {
+            error_log('Stripe webhook mail dispatch failed for order ' . $order['id'] . ': ' . $e->getMessage());
+        }
+    }
 }
 
 http_response_code(200);
@@ -121,15 +175,5 @@ function handleCheckoutCompleted(object $session): void {
               WHERE id = ?",
             [$quantity, $productId]
         );
-    }
-
-    $order = Database::fetchOne(
-        "SELECT * FROM orders WHERE stripe_session_id = ?",
-        [$session->id]
-    );
-
-    if ($order) {
-        Mailer::notifyOwnerOfSale($order);
-        Mailer::sendCustomerReceipt($order);
     }
 }

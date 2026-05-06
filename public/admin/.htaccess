@@ -1,0 +1,6 @@
+# Deny direct access to anything that isn't a PHP entry point or a static asset.
+# Apache will still execute *.php; this just prevents PHP-generated `error_log`
+# files (and any other extensionless dumps) from being served as text/plain.
+<FilesMatch "^error_log|\.(log|sql|md|env|ini|sh)$">
+    Require all denied
+</FilesMatch>

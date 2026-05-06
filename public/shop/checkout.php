@@ -8,6 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect(SITE_URL . '/shop.php');
 }
 
+if (!STRIPE_ENABLED) {
+    flash('error', 'Online checkout is not available yet — please contact me to purchase.');
+    redirect(SITE_URL . '/shop.php');
+}
+
 csrf_verify();
 
 $productId = (int)($_POST['product_id'] ?? 0);

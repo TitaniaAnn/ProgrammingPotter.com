@@ -176,10 +176,27 @@ CREATE TABLE IF NOT EXISTS orders (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Stripe webhook idempotency ledger — every event_id is processed once.
+-- Migration ledger written to by includes/MigrationRunner.php so the admin UI
+-- can show which sql/NNN_*.sql files have already been applied. Auto-created
+-- by the runner if missing — listed here so fresh installs already have it.
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version     VARCHAR(255) PRIMARY KEY,
+    applied_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    applied_by  INT NULL,
+    -- 'run'   = executed by the runner
+    -- 'mark'  = pre-existing migration the admin marked as already applied
+    source      ENUM('run','mark') NOT NULL DEFAULT 'run',
+    notes       TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS stripe_webhook_events (
-    event_id    VARCHAR(255) PRIMARY KEY,
-    type        VARCHAR(100) NOT NULL,
-    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    event_id     VARCHAR(255) PRIMARY KEY,
+    type         VARCHAR(100) NOT NULL,
+    received_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- NULL until the handler runs to completion. Lets a retry of an event
+    -- whose handler crashed mid-flight re-execute, while a retry of a fully
+    -- processed event short-circuits.
+    processed_at TIMESTAMP NULL DEFAULT NULL,
     KEY idx_received_at (received_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

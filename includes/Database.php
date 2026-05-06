@@ -49,4 +49,23 @@ class Database {
         $stmt = self::query("DELETE FROM $table WHERE $where", $params);
         return $stmt->rowCount();
     }
+
+    /**
+     * Run $work inside a transaction. If $work throws, the transaction is
+     * rolled back and the exception re-raised.
+     */
+    public static function transaction(callable $work): mixed {
+        $pdo = self::getInstance();
+        $pdo->beginTransaction();
+        try {
+            $result = $work();
+            $pdo->commit();
+            return $result;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
 }

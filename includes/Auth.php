@@ -156,6 +156,8 @@ class Auth {
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($data),
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 10,
             CURLOPT_HTTPHEADER     => array_merge(
                 ['Content-Type: application/x-www-form-urlencoded', 'User-Agent: PotteryPortfolio/1.0'],
                 $extraHeaders
@@ -163,6 +165,9 @@ class Auth {
         ]);
         $response = curl_exec($ch);
         curl_close($ch);
+        if ($response === false) {
+            return [];
+        }
         return json_decode($response, true) ?? [];
     }
 
@@ -170,6 +175,8 @@ class Auth {
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 10,
             CURLOPT_HTTPHEADER     => [
                 "Authorization: Bearer $accessToken",
                 'User-Agent: PotteryPortfolio/1.0',
@@ -178,6 +185,9 @@ class Auth {
         ]);
         $response = curl_exec($ch);
         curl_close($ch);
+        if ($response === false) {
+            return [];
+        }
         return json_decode($response, true) ?? [];
     }
 }

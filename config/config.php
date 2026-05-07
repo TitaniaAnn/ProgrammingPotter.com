@@ -54,7 +54,10 @@ define('DB_PASS', $_ENV['DB_PASS']);
 
 define('DB_CHARSET', 'utf8mb4');
 
-define('SITE_URL', 'https://programmingpotter.com'); // No trailing slash
+// Override via SITE_URL in .env for local dev (e.g. http://localhost:8000) so
+// OAuth callbacks, mailer links, and Stripe redirect URIs resolve correctly.
+// No trailing slash. Falls back to the prod URL so a missing env var still ships.
+define('SITE_URL', rtrim($_ENV['SITE_URL'] ?? 'https://programmingpotter.com', '/'));
 define('UPLOAD_PATH', __DIR__ . '/../public/uploads/');
 define('UPLOAD_URL', SITE_URL . '/uploads/');
 
